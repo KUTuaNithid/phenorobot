@@ -1,0 +1,93 @@
+# elp stereo model
+
+#==============#
+# Camera Model #
+#==============#
+
+# intrinsic parameters after stereo-rectification are written
+
+Camera.name: "elp stereo"
+Camera.setup: "stereo"
+Camera.model: "fisheye"
+
+# new "rectified" matrices is the first three cols of the projection matrix which is calculated with cv::stereoRectify()
+# e.g. fx = P1[0][0] or P2[0][0], cx = P1[0][2] or P2[0][2]
+#      fy = P1[1][1] or P2[1][1], cy = P1[1][2] or P2[1][2]
+
+Camera.fx: 412.472898
+Camera.fy: 424.587691
+Camera.cx: 691.585423
+Camera.cy: 463.168991
+
+# there is no distortion after stereo rectification
+
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+Camera.k3: 0.0
+Camera.k4: 0.0
+
+# focal_x_baseline is -P2[0][3] which is calculated with cv::stereoRectify()
+
+Camera.fps: 40.0
+Camera.cols: 1280
+Camera.rows: 960
+Camera.focal_x_baseline: 6.582496
+
+Camera.color_order: "RGB"
+
+#======================#
+# Stereo Rectification #
+#======================#
+
+# original intrinsic parameters (K, D) and stereo-recitification parameters (R)
+# matrices (K, R) are written in row-major order
+
+StereoRectifier.model: "fisheye"
+StereoRectifier.K_left: [394.76205,   2.82924, 690.63206,
+           0.0, 397.95181, 471.78662,
+           0.0,   0.0,   1.0]
+StereoRectifier.D_left: [-0.016931, -0.031861, 0.022690, -0.007670]
+StereoRectifier.R_left: [0.99999836,  0.0005982 , -0.00171096,
+         -0.00058907,  0.99998562,  0.00533048,
+          0.00171413, -0.00532947,  0.99998433]
+StereoRectifier.K_right: [400.05949,   0.66232, 697.13124,
+           0.0, 403.73843, 500.38749,
+           0.0,   0.0,   1.0]
+StereoRectifier.D_right: [-0.043536, -0.009952, 0.021632, -0.010701]
+StereoRectifier.R_right: [0.99995327, -0.0080542 , -0.00534672,
+          0.00802559,  0.99995347, -0.00535149,
+          0.00538957,  0.00530833,  0.99997139]
+
+#================#
+# ORB Parameters #
+#================#
+
+Feature.max_num_keypoints: 1000
+Feature.scale_factor: 1.2
+Feature.num_levels: 8
+Feature.ini_fast_threshold: 20
+Feature.min_fast_threshold: 7
+
+
+#========================#
+# Initializer Parameters #
+#========================#
+
+Initializer.num_min_triangulated_pts: 100
+
+#===========================#
+# PangolinViewer Parameters #
+#===========================#
+
+PangolinViewer.keyframe_size: 0.07
+PangolinViewer.keyframe_line_width: 1
+PangolinViewer.graph_line_width: 1
+PangolinViewer.point_size: 2
+PangolinViewer.camera_size: 0.08
+PangolinViewer.camera_line_width: 3
+PangolinViewer.viewpoint_x: 0
+PangolinViewer.viewpoint_y: -0.65
+PangolinViewer.viewpoint_z: -1.9
+PangolinViewer.viewpoint_f: 400
