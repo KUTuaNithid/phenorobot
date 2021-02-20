@@ -128,6 +128,7 @@ endif()
 #################
 
 find_package(catkin REQUIRED COMPONENTS
+        nav_msgs
         cv_bridge
         image_transport)
 
@@ -189,6 +190,7 @@ endif()
 #################################
 
 catkin_package(CATKIN_DEPENDS
+        nav_msgs
         cv_bridge
         image_transport)
 

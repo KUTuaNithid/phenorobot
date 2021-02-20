@@ -58,6 +58,8 @@ void SplitImage::SyncImageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv_bridge::CvImagePtr cv_ptr_right;
     std::string left_frame = camera_ns + "_left_optical_frame";
     std::string right_frame = camera_ns + "_right_optical_frame";
+    // std::string left_frame = camera_ns + "_optical_frame";
+    // std::string right_frame = camera_ns + "_optical_frame";
     try
     {
       cv_ptr_left = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);

@@ -1,0 +1,82 @@
+# EuRoC stereo model
+
+#==============#
+# Camera Model #
+#==============#
+
+# intrinsic parameters after stereo-rectification are written
+
+Camera.name: "zed stereo"
+Camera.setup: "stereo"
+Camera.model: "perspective"
+
+# new "rectified" matrices is the first three cols of the projection matrix which is calculated with cv::stereoRectify()
+# e.g. fx = P1[0][0] or P2[0][0], cx = P1[0][2] or P2[0][2]
+#      fy = P1[1][1] or P2[1][1], cy = P1[1][2] or P2[1][2]
+
+Camera.fx: 669.4834594726562
+Camera.fy: 669.4834594726562
+Camera.cx: 624.2557373046875
+Camera.cy: 372.9559326171875
+
+# there is no distortion after stereo rectification
+
+Camera.k1: -0.173824
+Camera.k2: 0.0257364
+Camera.p1: 0.0
+Camera.p2: 0.0
+Camera.k3: 0.0
+
+# focal_x_baseline is -P2[0][3] which is calculated with cv::stereoRectify()
+
+Camera.fps: 30.0
+Camera.cols: 1280
+Camera.rows: 720
+Camera.focal_x_baseline: 80.32711029052734
+
+Camera.color_order: "RGB"
+
+#======================#
+# Stereo Rectification #
+#======================#
+
+# original intrinsic parameters (K, D) and stereo-recitification parameters (R)
+# matrices (K, R) are written in row-major order
+
+StereoRectifier.K_left: [669.4834594726562, 0.0, 624.2557373046875, 0.0, 669.4834594726562, 372.9559326171875, 0.0, 0.0, 1.0]
+StereoRectifier.D_left: [0.0, 0.0, 0.0, 0.0, 0.0]
+StereoRectifier.R_left: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+StereoRectifier.K_right: [669.392578125, 0.0, 624.2439575195312, 0.0, 669.392578125, 372.94921875, 0.0, 0.0, 1.0]
+StereoRectifier.D_right: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+StereoRectifier.R_right: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+
+#================#
+# ORB Parameters #
+#================#
+
+Feature.max_num_keypoints: 1000
+Feature.scale_factor: 1.2
+Feature.num_levels: 8
+Feature.ini_fast_threshold: 20
+Feature.min_fast_threshold: 7
+
+#========================#
+# Initializer Parameters #
+#========================#
+
+Initializer.num_min_triangulated_pts: 100
+
+#===========================#
+# PangolinViewer Parameters #
+#===========================#
+
+PangolinViewer.keyframe_size: 0.07
+PangolinViewer.keyframe_line_width: 1
+PangolinViewer.graph_line_width: 1
+PangolinViewer.point_size: 2
+PangolinViewer.camera_size: 0.08
+PangolinViewer.camera_line_width: 3
+PangolinViewer.viewpoint_x: 0
+PangolinViewer.viewpoint_y: -0.65
+PangolinViewer.viewpoint_z: -1.9
+PangolinViewer.viewpoint_f: 400

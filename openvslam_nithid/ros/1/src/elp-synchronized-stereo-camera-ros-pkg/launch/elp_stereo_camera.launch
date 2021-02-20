@@ -6,8 +6,8 @@
   <arg name="DEVICE" default="/dev/elp_sync" />
 
   <!-- Combined width of two images in single reported image, each are 1280x960 -->
-  <arg name="WIDTH" default="640" />
-  <arg name="HEIGHT" default="240" />
+  <arg name="WIDTH" default="1280" />
+  <arg name="HEIGHT" default="480" />
   <arg name="FRAMERATE" default="40" />  <!-- max 60fps for ELP-960P2CAM-V90-VC -->
 
   <!-- start the cameras -->
