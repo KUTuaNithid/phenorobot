@@ -183,7 +183,7 @@ void tracking_module::track() {
         update_local_map();
 
         // pass all of the keyframes to the mapping module
-        const auto keyfrms = map_db_->get_all_keyframes();
+        const auto keyfrms = map_db_->get_all_keyfr9ames();
         for (const auto keyfrm : keyfrms) {
             mapper_->queue_keyframe(keyfrm);
         }
