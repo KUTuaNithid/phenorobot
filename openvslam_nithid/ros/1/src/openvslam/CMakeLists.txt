@@ -129,7 +129,8 @@ endif()
 
 find_package(catkin REQUIRED COMPONENTS
         cv_bridge
-        image_transport)
+        image_transport
+        darknet_ros_msgs)
 
 # thread library
 find_package(Threads REQUIRED)

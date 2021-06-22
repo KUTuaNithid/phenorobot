@@ -9,9 +9,13 @@
 #include <image_transport/image_transport.h>
 #include <image_transport/subscriber_filter.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/subscriber.h>
+#include <cv_bridge/cv_bridge.h>
 #include <cv_bridge/cv_bridge.h>
 
 #include <opencv2/core/core.hpp>
+#include <darknet_ros_msgs/centerBdbox.h>
+#include <darknet_ros_msgs/centerBdboxes.h>
 
 namespace openvslam_ros {
 class system {
@@ -33,16 +37,20 @@ public:
 
     image_transport::Subscriber sub_;
 };
-
 class stereo : public system {
 public:
     stereo(const std::shared_ptr<openvslam::config>& cfg, const std::string& vocab_file_path, const std::string& mask_img_path,
            const bool rectify);
-    void callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right);
+    // void callback(const darknet_ros_msgs::centerBdboxes& left, const darknet_ros_msgs::centerBdboxes& right, const sensor_msgs::ImageConstPtr& bdbox);
+    void callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right, const darknet_ros_msgs::centerBdboxes& bdbox);
 
     std::shared_ptr<openvslam::util::stereo_rectifier> rectifier_;
     image_transport::SubscriberFilter left_sf_, right_sf_;
-    using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image>;
+    message_filters::Subscriber<darknet_ros_msgs::centerBdboxes> bdbox_sf_;
+    // message_filters::Subscriber<darknet_ros_msgs::centerBdboxes> left_sf_, right_sf_, bdbox_sf_;
+    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<darknet_ros_msgs::centerBdboxes, darknet_ros_msgs::centerBdboxes, darknet_ros_msgs::centerBdboxes>;
+    using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::centerBdboxes>;
+    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image>;
     message_filters::Synchronizer<SyncPolicy> sync_;
 };
 

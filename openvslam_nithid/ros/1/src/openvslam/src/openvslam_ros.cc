@@ -33,11 +33,12 @@ stereo::stereo(const std::shared_ptr<openvslam::config>& cfg, const std::string&
       rectifier_(rectify ? std::make_shared<openvslam::util::stereo_rectifier>(cfg) : nullptr),
       left_sf_(it_, "camera/left/image_raw", 1),
       right_sf_(it_, "camera/right/image_raw", 1),
-      sync_(SyncPolicy(10), left_sf_, right_sf_) {
+      bdbox_sf_(nh_, "camera/boundingbox", 1),
+      sync_(SyncPolicy(10), left_sf_, right_sf_, bdbox_sf_) {
     sync_.registerCallback(&stereo::callback, this);
 }
 
-void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right) {
+void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right, const darknet_ros_msgs::centerBdboxes& bdbox) {
     auto leftcv = cv_bridge::toCvShare(left)->image;
     auto rightcv = cv_bridge::toCvShare(right)->image;
     if (leftcv.empty() || rightcv.empty()) {
