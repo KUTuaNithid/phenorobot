@@ -244,6 +244,9 @@ void map_database::register_keyframe(camera_database* cam_db, bow_vocabulary* bo
     // depths
     const auto depths = json_keyfrm.at("depths").get<std::vector<float>>();
     assert(depths.size() == num_keypts);
+    // labels
+    const auto labels = json_keyfrm.at("labels").get<std::vector<std::string>>();
+    assert(labels.size() == num_keypts);
     // descriptors
     const auto json_descriptors = json_keyfrm.at("descs");
     const auto descriptors = convert_json_to_descriptors(json_descriptors);
@@ -256,6 +259,7 @@ void map_database::register_keyframe(camera_database* cam_db, bow_vocabulary* bo
     // Construct a new object
     auto keyfrm = new data::keyframe(id, src_frm_id, timestamp, cam_pose_cw, camera, depth_thr,
                                      num_keypts, keypts, undist_keypts, bearings, stereo_x_right, depths, descriptors,
+                                     labels,
                                      num_scale_levels, scale_factor, bow_vocab, bow_db, this);
 
     // Append to map database

@@ -41,17 +41,19 @@ class stereo : public system {
 public:
     stereo(const std::shared_ptr<openvslam::config>& cfg, const std::string& vocab_file_path, const std::string& mask_img_path,
            const bool rectify);
-    // void callback(const darknet_ros_msgs::centerBdboxes& left, const darknet_ros_msgs::centerBdboxes& right, const sensor_msgs::ImageConstPtr& bdbox);
-    void callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right, const darknet_ros_msgs::centerBdboxes& bdbox);
+    // void callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right);
+    void callback(const sensor_msgs::ImageConstPtr &left, const sensor_msgs::ImageConstPtr &right, const darknet_ros_msgs::centerBdboxes::ConstPtr &bdbox);
 
     std::shared_ptr<openvslam::util::stereo_rectifier> rectifier_;
-    image_transport::SubscriberFilter left_sf_, right_sf_;
+    // image_transport::SubscriberFilter left_sf_, right_sf_;
+    message_filters::Subscriber<sensor_msgs::Image> left_sf_, right_sf_;
     message_filters::Subscriber<darknet_ros_msgs::centerBdboxes> bdbox_sf_;
-    // message_filters::Subscriber<darknet_ros_msgs::centerBdboxes> left_sf_, right_sf_, bdbox_sf_;
-    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<darknet_ros_msgs::centerBdboxes, darknet_ros_msgs::centerBdboxes, darknet_ros_msgs::centerBdboxes>;
-    using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::centerBdboxes>;
-    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image>;
-    message_filters::Synchronizer<SyncPolicy> sync_;
+    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::centerBdboxes>;
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::centerBdboxes> SyncPolicy;
+    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image>;
+    typedef message_filters::Synchronizer<SyncPolicy> Sync;
+    boost::shared_ptr<Sync> sync_;
+    // message_filters::Synchronizer<SyncPolicy> sync_;
 };
 
 class rgbd : public system {

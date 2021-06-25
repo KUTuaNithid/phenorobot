@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include <nlohmann/json_fwd.hpp>
+#include <spdlog/spdlog.h>
 
 namespace openvslam {
 

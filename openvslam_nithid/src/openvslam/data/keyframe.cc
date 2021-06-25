@@ -26,6 +26,7 @@ keyframe::keyframe(const frame& frm, map_database* map_db, bow_database* bow_db)
       num_keypts_(frm.num_keypts_), keypts_(frm.keypts_), undist_keypts_(frm.undist_keypts_), bearings_(frm.bearings_),
       keypt_indices_in_cells_(frm.keypt_indices_in_cells_),
       stereo_x_right_(frm.stereo_x_right_), depths_(frm.depths_), descriptors_(frm.descriptors_.clone()),
+      labels_(frm.labels_),
       // BoW
       bow_vec_(frm.bow_vec_), bow_feat_vec_(frm.bow_feat_vec_),
       // covisibility graph node (connections is not assigned yet)
@@ -47,6 +48,7 @@ keyframe::keyframe(const unsigned int id, const unsigned int src_frm_id, const d
                    const unsigned int num_keypts, const std::vector<cv::KeyPoint>& keypts,
                    const std::vector<cv::KeyPoint>& undist_keypts, const eigen_alloc_vector<Vec3_t>& bearings,
                    const std::vector<float>& stereo_x_right, const std::vector<float>& depths, const cv::Mat& descriptors,
+                   const std::vector<std::string>& labels,
                    const unsigned int num_scale_levels, const float scale_factor,
                    bow_vocabulary* bow_vocab, bow_database* bow_db, map_database* map_db)
     : // meta information
@@ -57,6 +59,7 @@ keyframe::keyframe(const unsigned int id, const unsigned int src_frm_id, const d
       num_keypts_(num_keypts), keypts_(keypts), undist_keypts_(undist_keypts), bearings_(bearings),
       keypt_indices_in_cells_(assign_keypoints_to_grid(camera, undist_keypts)),
       stereo_x_right_(stereo_x_right), depths_(depths), descriptors_(descriptors.clone()),
+      labels_(labels),
       // graph node (connections is not assigned yet)
       graph_node_(std::unique_ptr<graph_node>(new graph_node(this, false))),
       // ORB scale pyramid
@@ -125,6 +128,7 @@ nlohmann::json keyframe::to_json() const {
             {"x_rights", stereo_x_right_},
             {"depths", depths_},
             {"descs", convert_descriptors_to_json(descriptors_)},
+            {"labels", labels_},
             {"lm_ids", landmark_ids},
             // orb scale information
             {"n_scale_levels", num_scale_levels_},
