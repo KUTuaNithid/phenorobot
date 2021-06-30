@@ -2,7 +2,7 @@
 # Camera Model #
 #==============#
 
-Camera.name: "ZED 3"
+Camera.name: "ZED"
 Camera.setup: "stereo"
 Camera.model: "perspective"
 
@@ -10,17 +10,18 @@ Camera.fps: 30.0
 Camera.cols: 1280
 Camera.rows: 720
 
-Camera.fx: 699.885
-Camera.fy: 699.885
-Camera.cx: 640.38
-Camera.cy: 375.3145
+Camera.fx: 657.6827392578125
+Camera.fy: 657.6827392578125
+Camera.cx: 628.4141235351562
+Camera.cy: 372.4691162109375
 
-Camera.k1: -0.172509
-Camera.k2: 0.0247494
+Camera.k1: 0.0
+Camera.k2: 0.0
 Camera.p1: 0.0
 Camera.p2: 0.0
 Camera.k3: 0.0
-Camera.focal_x_baseline: 83.9826
+# focal_x_baseline = fx * baseline
+Camera.focal_x_baseline: 78.90746179780308
 
 Camera.color_order: "RGB"
 

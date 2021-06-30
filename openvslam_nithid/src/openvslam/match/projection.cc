@@ -4,6 +4,7 @@
 #include "openvslam/data/landmark.h"
 #include "openvslam/match/projection.h"
 #include "openvslam/match/angle_checker.h"
+#include <spdlog/spdlog.h>
 
 namespace openvslam {
 namespace match {

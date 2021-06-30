@@ -83,17 +83,29 @@ void objectdetection::compute_label_pos(float percent) {
 }
 
 std::string objectdetection::get_label(float x, float y) {
-    // spdlog::warn("get_label {} {}", x, y);
-    const auto label = label_pos.find(std::make_tuple(x, y));
-    if (label == label_pos.end()) {
-        std::string nolabel = "No label";
-        // spdlog::warn("nolabel {}", nolabel);
-        return nolabel;
+    // Check x, y
+    for (const auto object : objects) {
+        float prob = std::get<0>(object);
+        signed long int x_cen = std::get<1>(object);
+        signed long int y_cen = std::get<2>(object);
+        signed long int width = std::get<3>(object);
+        signed long int height = std::get<4>(object);
+        signed short int id = std::get<5>(object);
+        std::string Class = std::get<6>(object);
+
+        float x_min = x_cen - (width/2);
+        float x_max = x_cen + (width/2);
+        float y_min = y_cen - (height/2);
+        float y_max = y_cen + (height/2);
+
+        if(x > x_min && x < x_max && y>y_min && y < y_max) {
+            return Class;
+        }
     }
-    else {
-        // spdlog::warn("label->second {}", label->second);
-        return label->second;
-    }
+
+    std::string nolabel = "No label";
+    return nolabel;
+
 }
 
 frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const double timestamp,

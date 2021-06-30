@@ -25,26 +25,44 @@ relocalizer::~relocalizer() {
 }
 #include <math.h>
 signed int filter_by_object(data::keyframe* keyfrm, data::frame& frm) {
-    const auto frm_labels = frm.labels_;
-    const auto kfrm_labels = keyfrm->labels_;
-    const auto lm_frm = frm.landmarks_;
+    spdlog::warn("filter_by_object");
     const auto lm_key = keyfrm->get_landmarks();
 
     signed int matched = 0;
-    
-    for (unsigned int idx_frm = 0; idx_frm < frm_labels.size(); ++idx_frm) {
+    for (unsigned int idx_frm = 0; idx_frm < frm.labels_.size(); ++idx_frm) {
         // 1. Check if object in frame is in candidate or not
-        const auto found = std::find(kfrm_labels.begin(), kfrm_labels.end(), frm_labels.at(idx_frm));
-        if (found == std::end(kfrm_labels)){
+        spdlog::warn("filter_by_object loop {}", idx_frm);
+        auto found = std::find(keyfrm->labels_.begin(), keyfrm->labels_.end(), frm.labels_.at(idx_frm));
+        if (found == std::end(keyfrm->labels_)){
+            spdlog::warn("loop not found");
             continue;
         }
-        unsigned int idx_key = found - kfrm_labels.begin();
+        unsigned int idx_key = found - keyfrm->labels_.begin();
+        spdlog::warn("idx_key {}", idx_key);
+        spdlog::warn("frm.labels_.at(idx_frm) {} keyfrm->labels_.at(idx_key) {}", frm.labels_.at(idx_frm), keyfrm->labels_.at(idx_key));
         // 2. If found, how similarity of position
-        const auto pos_frm = lm_frm.at(idx_frm)->get_pos_in_world();
-        const auto pos_key = lm_key.at(idx_key)->get_pos_in_world();
+        // const auto pos_frm = frm.landmarks_.at(idx_frm)->get_pos_in_world();
+        // const auto pos_key = lm_key.at(idx_key)->get_pos_in_world();
+        auto* lm_idx = frm.landmarks_.at(idx_frm);
+        if (!lm_idx) {
+            spdlog::warn("No landmark {}", idx_frm);
+            continue;
+        }
+        if (frm.outlier_flags_.at(idx_frm)) {
+            spdlog::warn("outlier_flags_ idx_key {}", idx_frm);
+            continue;
+        }
+        spdlog::warn("Get frame landmark");
+        const Vec3_t pos_frm = lm_idx->get_pos_in_world();
+
+        spdlog::warn("Get key landmark");
+        auto* key_idx = lm_key.at(idx_key);
+        const Vec3_t pos_key = key_idx->get_pos_in_world();
+
         float distance = cv::sqrt(std::pow(pos_frm(0)-pos_key(0), 2)+std::pow(pos_frm(1)-pos_key(1), 2)+std::pow(pos_frm(2)-pos_key(2), 2));
-        printf("Distance %f", distance);
+        spdlog::warn("Distance {}", distance);
     }
+    spdlog::warn("filter_by_object done");
     return 0;
 
 }

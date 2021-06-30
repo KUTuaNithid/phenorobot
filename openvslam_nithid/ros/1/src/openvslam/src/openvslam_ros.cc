@@ -64,7 +64,6 @@ void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs:
     for(unsigned int i = 0; i < bdbox->centerBdboxes.size(); i++){
         objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class);
     }
-    objects.compute_label_pos(0.05);
     
     // input the current frame and estimate the camera pose
     // SLAM_.feed_stereo_frame(leftcv, rightcv, timestamp, mask_);
