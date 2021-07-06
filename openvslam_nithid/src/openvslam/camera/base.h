@@ -108,7 +108,9 @@ public:
     const double fps_;
 
     //! focal x true baseline
-    const double focal_x_baseline_;
+    // May updated online by ZED
+    // const double focal_x_baseline_;
+    double focal_x_baseline_;
 
     //! true baseline length in metric scale
     const double true_baseline_;

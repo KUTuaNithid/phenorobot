@@ -16,6 +16,7 @@
 #include <opencv2/core/core.hpp>
 #include <darknet_ros_msgs/centerBdbox.h>
 #include <darknet_ros_msgs/centerBdboxes.h>
+#include <darknet_ros_msgs/get_camParam.h>
 
 namespace openvslam_ros {
 class system {

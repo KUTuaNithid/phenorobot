@@ -17,6 +17,10 @@ public:
     //! Destructor
     ~config();
 
+    void update_cam_param(const double fx, const double fy, const double cx, const double cy,
+                    const double k1, const double k2, const double p1, const double p2, const double k3,
+                    const double focal_x_baseline);
+
     friend std::ostream& operator<<(std::ostream& os, const config& cfg);
 
     //! path to config YAML file

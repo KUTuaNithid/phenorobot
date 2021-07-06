@@ -24,6 +24,11 @@ add_message_files(
     ObjectCount.msg
 )
 
+add_service_files(
+  FILES
+  get_camParam.srv
+)
+
 add_action_files(
   FILES
     CheckForObjects.action

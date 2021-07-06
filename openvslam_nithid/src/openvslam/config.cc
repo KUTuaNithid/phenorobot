@@ -99,6 +99,24 @@ config::config(const YAML::Node& yaml_node, const std::string& config_file_path)
     }
 }
 
+void config::update_cam_param(const double fx, const double fy, const double cx, const double cy,
+                const double k1, const double k2, const double p1, const double p2, const double k3,
+                const double focal_x_baseline) {
+    auto camera = static_cast<camera::perspective*>(camera_);
+    camera->fx_ = fx;
+    camera->fy_ = fy;
+    camera->cx_ = cx;
+    camera->cy_ = cy;
+    camera->k1_ = k1;
+    camera->k2_ = k2;
+    camera->p1_ = p1;
+    camera->p2_ = p2;
+    camera->k3_ = k3;
+    camera->k3_ = k3;
+    camera->focal_x_baseline_ = focal_x_baseline;
+    return;
+}
+
 config::~config() {
     delete camera_;
     camera_ = nullptr;
