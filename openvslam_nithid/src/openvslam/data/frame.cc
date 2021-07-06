@@ -212,7 +212,17 @@ Vec3_t frame::triangulate_stereo(const unsigned int idx) const {
                 const float unproj_x = (x - camera->cx_) * depth * camera->fx_inv_;
                 const float unproj_y = (y - camera->cy_) * depth * camera->fy_inv_;
                 const Vec3_t pos_c{unproj_x, unproj_y, depth};
-
+                // spdlog::warn("Called {} {}", x, y);
+                // if ((int(x) == 658 && int(y) == 377) ||
+                //     (int(x) == 661 && int(y) == 337) ||
+                //     (int(x) == 616 && int(y) == 377) ||
+                //     (int(x) == 616 && int(y) == 378) ||
+                //     (int(x) == 613 && int(y) == 336)
+                // )
+                if(x > 600 && x < 680 && y > 320 && y < 400)
+                {
+                    spdlog::warn("FOUND TARGET {} {} {}", x, y, depth);
+                }
                 // Convert from camera coordinates to world coordinates
                 return rot_wc_ * pos_c + cam_center_;
             }
