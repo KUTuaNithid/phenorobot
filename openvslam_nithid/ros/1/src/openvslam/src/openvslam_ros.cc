@@ -62,7 +62,10 @@ void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs:
     openvslam::data::objectdetection objects;
     
     for(unsigned int i = 0; i < bdbox->centerBdboxes.size(); i++){
-        objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class);
+        objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class, bdbox->centerBdboxes[i].depth);
+        // objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class);
+        // if (bdbox->centerBdboxes[i].depth != -1)
+        //     ROS_INFO("bdbox->centerBdboxes[i].Class %s bdbox->centerBdboxes[i].depth %f", bdbox->centerBdboxes[i].Class.c_str(), bdbox->centerBdboxes[i].depth);
     }
     
     // input the current frame and estimate the camera pose

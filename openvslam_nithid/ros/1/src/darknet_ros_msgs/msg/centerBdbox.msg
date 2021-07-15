@@ -5,3 +5,4 @@ int64 width
 int64 height
 int16 id
 string Class
+float64 depth

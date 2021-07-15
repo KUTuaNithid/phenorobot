@@ -51,40 +51,42 @@ frame::frame(const cv::Mat& img_gray, const double timestamp,
     assign_keypoints_to_grid(camera_, undist_keypts_, keypt_indices_in_cells_);
 }
 
-void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class) {
+// void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class) {
+void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class, float depth) {
     // spdlog::warn("add_object {}", Class.c_str());
-    objects.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class));
+    objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class, depth));
+    // objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class));
 }
 
-void objectdetection::compute_label_pos(float percent) {
-    // spdlog::warn("Enter compute_label_pos");
-    for (const auto object : objects) {
-        float prob = std::get<0>(object);
-        signed long int x_cen = std::get<1>(object);
-        signed long int y_cen = std::get<2>(object);
-        signed long int width = std::get<3>(object);
-        signed long int height = std::get<4>(object);
-        signed short int id = std::get<5>(object);
-        std::string Class = std::get<6>(object);
-        // spdlog::warn("Class {}", Class.c_str());
+// void objectdetection::compute_label_pos(float percent) {
+//     // spdlog::warn("Enter compute_label_pos");
+//     for (const auto object : objects) {
+//         float prob = std::get<0>(object);
+//         signed long int x_cen = std::get<1>(object);
+//         signed long int y_cen = std::get<2>(object);
+//         signed long int width = std::get<3>(object);
+//         signed long int height = std::get<4>(object);
+//         signed short int id = std::get<5>(object);
+//         std::string Class = std::get<6>(object);
+//         // spdlog::warn("Class {}", Class.c_str());
 
-        // Size of selected depends on size of bounding box
-        float weight = (width * height) * percent;
-        int area_div = sqrt(weight) / 2;
-        // spdlog::warn("x_cen - area_div {}, x_cen + area_div {}", x_cen - area_div, x_cen + area_div);
-        // spdlog::warn("y_cen - area_div {}, y_cen + area_div {}", y_cen - area_div, y_cen + area_div);
+//         // Size of selected depends on size of bounding box
+//         float weight = (width * height) * percent;
+//         int area_div = sqrt(weight) / 2;
+//         // spdlog::warn("x_cen - area_div {}, x_cen + area_div {}", x_cen - area_div, x_cen + area_div);
+//         // spdlog::warn("y_cen - area_div {}, y_cen + area_div {}", y_cen - area_div, y_cen + area_div);
 
-        for (unsigned int j = x_cen - area_div; j < x_cen + area_div; j++) {
-            for (unsigned int i = y_cen - area_div; i < y_cen + area_div; i++) {
-                label_pos[std::make_tuple(i, j)] = Class;
-            }
-        }
-    }
-}
+//         for (unsigned int j = x_cen - area_div; j < x_cen + area_div; j++) {
+//             for (unsigned int i = y_cen - area_div; i < y_cen + area_div; i++) {
+//                 label_pos[std::make_tuple(i, j)] = Class;
+//             }
+//         }
+//     }
+// }
 
 std::string objectdetection::get_label(float x, float y) {
     // Check x, y
-    for (const auto object : objects) {
+    for (const auto object : objects_) {
         float prob = std::get<0>(object);
         signed long int x_cen = std::get<1>(object);
         signed long int y_cen = std::get<2>(object);
@@ -144,6 +146,7 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
     labels_ = std::vector<std::string>(num_keypts_, "No label");
     label_keypoints();
     // spdlog::warn("label_keypoints DONE");
+
     // Initialize association with 3D points
     landmarks_ = std::vector<landmark*>(num_keypts_, nullptr);
     outlier_flags_ = std::vector<bool>(num_keypts_, false);
@@ -161,7 +164,7 @@ void frame::label_keypoints(){
         const float y = keypt_left.pt.y;
         const float x = keypt_left.pt.x;
         labels_.at(idx_left) = objects_.get_label(x, y);
-        // spdlog::warn("labels_.at({})", idx_left, labels_.at(idx_left));
+        // spdlog::warn("labels_.at({}) {}", idx_left, labels_.at(idx_left));
     }
 }
 

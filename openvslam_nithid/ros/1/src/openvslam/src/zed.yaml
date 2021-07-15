@@ -57,6 +57,7 @@ PangolinViewer.graph_line_width: 2
 PangolinViewer.point_size: 2
 PangolinViewer.camera_size: 0.8
 PangolinViewer.camera_line_width: 3
+PangolinViewer.color_scheme: "black"
 # PangolinViewer.viewpoint_x: 0.0
 # PangolinViewer.viewpoint_y: -300
 # PangolinViewer.viewpoint_z: -0.1
