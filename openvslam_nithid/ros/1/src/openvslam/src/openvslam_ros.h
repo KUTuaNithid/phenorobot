@@ -14,8 +14,8 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include <opencv2/core/core.hpp>
-#include <darknet_ros_msgs/centerBdbox.h>
-#include <darknet_ros_msgs/centerBdboxes.h>
+#include <darknet_ros_msgs/Detection.h>
+#include <darknet_ros_msgs/Detections.h>
 #include <darknet_ros_msgs/get_camParam.h>
 
 namespace openvslam_ros {
@@ -43,14 +43,14 @@ public:
     stereo(const std::shared_ptr<openvslam::config>& cfg, const std::string& vocab_file_path, const std::string& mask_img_path,
            const bool rectify);
     // void callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right);
-    void callback(const sensor_msgs::ImageConstPtr &left, const sensor_msgs::ImageConstPtr &right, const darknet_ros_msgs::centerBdboxes::ConstPtr &bdbox);
+    void callback(const sensor_msgs::ImageConstPtr &left, const sensor_msgs::ImageConstPtr &right, const darknet_ros_msgs::Detections::ConstPtr &bdbox);
 
     std::shared_ptr<openvslam::util::stereo_rectifier> rectifier_;
     // image_transport::SubscriberFilter left_sf_, right_sf_;
     message_filters::Subscriber<sensor_msgs::Image> left_sf_, right_sf_;
-    message_filters::Subscriber<darknet_ros_msgs::centerBdboxes> bdbox_sf_;
-    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::centerBdboxes>;
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::centerBdboxes> SyncPolicy;
+    message_filters::Subscriber<darknet_ros_msgs::Detections> bdbox_sf_;
+    // using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::Detections>;
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::Detections> SyncPolicy;
     // using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image>;
     typedef message_filters::Synchronizer<SyncPolicy> Sync;
     boost::shared_ptr<Sync> sync_;

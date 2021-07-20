@@ -43,8 +43,15 @@ stereo::stereo(const std::shared_ptr<openvslam::config>& cfg, const std::string&
     sync_->registerCallback(boost::bind(&stereo::callback, this, _1, _2, _3));
 }
 
-void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right, const darknet_ros_msgs::centerBdboxes::ConstPtr &bdbox) {
-// void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right) {
+// #include <chrono>
+
+void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right, const darknet_ros_msgs::Detections::ConstPtr &bdbox) {
+    // using std::chrono::high_resolution_clock;
+    // using std::chrono::duration_cast;
+    // using std::chrono::duration;
+    // using std::chrono::milliseconds;
+    // auto start = high_resolution_clock::now();
+
     auto leftcv = cv_bridge::toCvShare(left)->image;
     auto rightcv = cv_bridge::toCvShare(right)->image;
     if (leftcv.empty() || rightcv.empty()) {
@@ -60,22 +67,23 @@ void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs:
 
     // Transform bdbox to openvslam bdbox
     openvslam::data::objectdetection objects;
-    
-    for(unsigned int i = 0; i < bdbox->centerBdboxes.size(); i++){
-        objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class, bdbox->centerBdboxes[i].depth);
-        // objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class);
-        // if (bdbox->centerBdboxes[i].depth != -1)
-        //     ROS_INFO("bdbox->centerBdboxes[i].Class %s bdbox->centerBdboxes[i].depth %f", bdbox->centerBdboxes[i].Class.c_str(), bdbox->centerBdboxes[i].depth);
+    // ROS_INFO("bdbox->detections.size() %d", bdbox->detections.size());
+    for (unsigned int i = 0; i < bdbox->detections.size(); i++) {
+        objects.add_object(bdbox->detections[i].score, bdbox->detections[i].box.x1, bdbox->detections[i].box.x2, bdbox->detections[i].box.y1, bdbox->detections[i].box.y2,
+                           bdbox->detections[i].mask.width, bdbox->detections[i].mask.height, bdbox->detections[i].mask.mask, bdbox->detections[i].class_name);
     }
-    
+
     // input the current frame and estimate the camera pose
-    // SLAM_.feed_stereo_frame(leftcv, rightcv, timestamp, mask_);
     SLAM_.feed_stereo_frame(leftcv, rightcv, timestamp, mask_, objects);
 
     const auto tp_2 = std::chrono::steady_clock::now();
 
     const auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();
     track_times_.push_back(track_time);
+
+    // auto stop = high_resolution_clock::now();
+    // duration<double, std::milli> s_double = (stop - start)/1000.0;
+    // ROS_INFO("FPS %f", 1.0/s_double.count());
 }
 
 rgbd::rgbd(const std::shared_ptr<openvslam::config>& cfg, const std::string& vocab_file_path, const std::string& mask_img_path)

@@ -9,6 +9,7 @@
 #include "openvslam/match/stereo.h"
 
 #include <thread>
+#include <iterator>
 
 #include <spdlog/spdlog.h>
 
@@ -52,9 +53,10 @@ frame::frame(const cv::Mat& img_gray, const double timestamp,
 }
 
 // void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class) {
-void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class, float depth) {
+void objectdetection::add_object(float probability, signed long int x1, signed long int x2, signed long int y1, signed long int y2,
+                                 signed long int width, signed long int height, const std::vector<unsigned char> &mask, std::string Class) {
     // spdlog::warn("add_object {}", Class.c_str());
-    objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class, depth));
+    objects_.push_back(std::make_tuple(probability, x1, x2, y1, y2, width, height, &mask, Class));
     // objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class));
 }
 
@@ -88,20 +90,44 @@ std::string objectdetection::get_label(float x, float y) {
     // Check x, y
     for (const auto object : objects_) {
         float prob = std::get<0>(object);
-        signed long int x_cen = std::get<1>(object);
-        signed long int y_cen = std::get<2>(object);
-        signed long int width = std::get<3>(object);
-        signed long int height = std::get<4>(object);
-        signed short int id = std::get<5>(object);
-        std::string Class = std::get<6>(object);
+        signed long int x1 = std::get<1>(object);
+        signed long int x2 = std::get<2>(object);
+        signed long int y1 = std::get<3>(object);
+        signed long int y2 = std::get<4>(object);
+        signed long int width = std::get<5>(object);
+        signed long int height = std::get<6>(object);
+        const std::vector<unsigned char>* mask = std::get<7>(object);
+        std::string Class = std::get<8>(object);
 
-        float x_min = x_cen - (width/2);
-        float x_max = x_cen + (width/2);
-        float y_min = y_cen - (height/2);
-        float y_max = y_cen + (height/2);
+        // using std::chrono::high_resolution_clock;
+        // using std::chrono::duration_cast;
+        // using std::chrono::duration;
+        // using std::chrono::milliseconds;
+        // auto start = high_resolution_clock::now();
 
-        if(x > x_min && x < x_max && y>y_min && y < y_max) {
-            return Class;
+        // auto stop = high_resolution_clock::now();
+        // duration<double, std::milli> ms_double = stop - start;
+        // spdlog::warn("unpack size {} DONE {}", mask->size(), ms_double.count());
+
+        // Calculate index array from x, y pos
+        if(x > x1 && x < x2 && y>y1 && y < y2) {
+            // Unpackbit
+            std::vector<int> out;
+            for (auto target : *mask) {
+                // int target = mask[n];
+                for (int i = 7; i >= 0; i--) {
+                    int k = target >> i;
+                    if (k & 1)
+                        out.push_back(1);
+                    else
+                        out.push_back(0);
+                }
+            }
+            int off_x = x - x1;
+            int off_y = y - y1;
+            if (out.at((off_y*width)+off_x) == 1) {
+                return Class;
+            }
         }
     }
 
@@ -110,6 +136,7 @@ std::string objectdetection::get_label(float x, float y) {
 
 }
 
+// #include <chrono>
 frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const double timestamp,
              feature::orb_extractor* extractor_left, feature::orb_extractor* extractor_right,
              bow_vocabulary* bow_vocab, camera::base* camera, const float depth_thr,
@@ -144,8 +171,15 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
 
     // Assign label follow undist keypoint
     labels_ = std::vector<std::string>(num_keypts_, "No label");
+    // using std::chrono::high_resolution_clock;
+    // using std::chrono::duration_cast;
+    // using std::chrono::duration;
+    // using std::chrono::milliseconds;
+    // auto start = high_resolution_clock::now();
     label_keypoints();
-    // spdlog::warn("label_keypoints DONE");
+    // auto stop = high_resolution_clock::now();
+    // duration<double, std::milli> ms_double = stop - start;
+    // spdlog::warn("label_keypoints DONE {}", ms_double.count());
 
     // Initialize association with 3D points
     landmarks_ = std::vector<landmark*>(num_keypts_, nullptr);
@@ -156,15 +190,18 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
     // spdlog::warn("assign_keypoints_to_grid DONE");
 }
 
-void frame::label_keypoints(){
-    for (unsigned int idx_left = 0; idx_left < num_keypts_; ++idx_left) {
-        // spdlog::warn("idx_left {}", idx_left);
-        // const auto& keypt_left = keypts_.at(idx_left);
-        const auto& keypt_left = undist_keypts_.at(idx_left);
-        const float y = keypt_left.pt.y;
-        const float x = keypt_left.pt.x;
-        labels_.at(idx_left) = objects_.get_label(x, y);
-        // spdlog::warn("labels_.at({}) {}", idx_left, labels_.at(idx_left));
+void frame::label_keypoints() {
+    // spdlog::warn("objects_.objects_.size() {}", objects_.objects_.size());
+    if (objects_.objects_.size() > 0) {
+        for (unsigned int idx_left = 0; idx_left < num_keypts_; ++idx_left) {
+            // spdlog::warn("idx_left {}", idx_left);
+            // const auto& keypt_left = keypts_.at(idx_left);
+            const auto& keypt_left = undist_keypts_.at(idx_left);
+            const float y = keypt_left.pt.y;
+            const float x = keypt_left.pt.x;
+            labels_.at(idx_left) = objects_.get_label(x, y);
+            // spdlog::warn("labels_.at({}) {}", idx_left, labels_.at(idx_left));
+        }
     }
 }
 

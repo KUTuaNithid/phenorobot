@@ -88,7 +88,7 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
         }
 
         // TODO: Design how to filter. Score, threshold (If frame have no object, what should we do)
-        const auto matches_object = filter_by_object(keyfrm, curr_frm);
+        // const auto matches_object = filter_by_object(keyfrm, curr_frm);
 
         const auto num_matches = bow_matcher_.match_frame_and_keyframe(keyfrm, curr_frm, matched_landmarks.at(i));
         // discard the candidate if the number of 2D-3D matches is less than the threshold

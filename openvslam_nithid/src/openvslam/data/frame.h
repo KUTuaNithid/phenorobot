@@ -41,16 +41,16 @@ public:
     std::map<pos_t, std::string> label_pos;
 
     // using object_t = std::tuple<float, signed long int, signed long int, signed long int, signed long int, signed short int, std::string>;
-    using object_t = std::tuple<float, signed long int, signed long int, signed long int, signed long int, signed short int, std::string, float>;
+    using object_t = std::tuple<float, signed long int, signed long int, signed long int, signed long int, signed long int, signed long int, const std::vector<unsigned char> * , std::string>;
 
-    void add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class, float depth);
+    void add_object(float probability, signed long int x1, signed long int x2, signed long int y1, signed long int y2, signed long int width, signed long int height, const std::vector<unsigned char> &mask, std::string Class);
     // void add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class);
 
     // void compute_label_pos(float percent);
 
     std::string get_label(float x, float y);
-private:
     std::vector<object_t> objects_;
+    
 };
 
 class frame {

@@ -6,7 +6,7 @@ Camera.name: "ZED"
 Camera.setup: "stereo"
 Camera.model: "perspective"
 
-Camera.fps: 30.0
+Camera.fps: 10
 Camera.cols: 1280
 Camera.rows: 720
 

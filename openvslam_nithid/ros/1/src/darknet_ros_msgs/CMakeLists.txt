@@ -15,12 +15,16 @@ find_package(catkin REQUIRED
 
 add_message_files(
   FILES
+    Box.msg
     BoundingBox.msg
     BoundingBoxes.msg
     centerBdbox.msg
     centerBdboxes.msg
+    Detection.msg
+    Detections.msg
     LabelPointcloud.msg
     LabelPointclouds.msg
+    Mask.msg
     ObjectCount.msg
 )
 
