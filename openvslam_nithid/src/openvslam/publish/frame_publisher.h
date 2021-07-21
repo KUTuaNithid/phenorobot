@@ -51,6 +51,7 @@ protected:
 
     unsigned int draw_tracked_points(cv::Mat& img, const std::vector<cv::KeyPoint>& curr_keypts,
                                      const std::vector<bool>& is_tracked, const bool mapping_is_enabled,
+                                     const std::vector<std::string>& curr_labels,
                                      const float mag = 1.0) const;
 
     void draw_info_text(cv::Mat& img, const tracker_state_t tracking_state, const unsigned int num_tracked,
@@ -59,6 +60,7 @@ protected:
     // colors (BGR)
     const cv::Scalar mapping_color_{0, 255, 255};
     const cv::Scalar localization_color_{255, 255, 0};
+    const cv::Scalar label_color_{0, 0, 255};
 
     //! config
     std::shared_ptr<config> cfg_;
@@ -83,6 +85,7 @@ protected:
 
     //! current keypoints
     std::vector<cv::KeyPoint> curr_keypts_;
+    std::vector<std::string> curr_labels_;
 
     //! elapsed time for tracking
     double elapsed_ms_ = 0.0;

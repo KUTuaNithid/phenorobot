@@ -247,12 +247,12 @@ Mat44_t system::feed_monocular_frame(const cv::Mat& img, const double timestamp,
     return cam_pose_cw;
 }
 
-Mat44_t system::feed_stereo_frame(const cv::Mat& left_img, const cv::Mat& right_img, const double timestamp, const cv::Mat& mask) {
+Mat44_t system::feed_stereo_frame(const cv::Mat& left_img, const cv::Mat& right_img, const double timestamp, const cv::Mat& mask, const data::objectdetection& objects) {
     assert(camera_->setup_type_ == camera::setup_type_t::Stereo);
 
     check_reset_request();
 
-    const Mat44_t cam_pose_cw = tracker_->track_stereo_image(left_img, right_img, timestamp, mask);
+    const Mat44_t cam_pose_cw = tracker_->track_stereo_image(left_img, right_img, timestamp, mask, objects);
 
     frame_publisher_->update(tracker_);
     if (tracker_->tracking_state_ == tracker_state_t::Tracking) {

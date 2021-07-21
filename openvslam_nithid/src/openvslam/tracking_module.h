@@ -74,7 +74,7 @@ public:
 
     //! Track a stereo frame
     //! (Note: Left and Right images must be stereo-rectified)
-    Mat44_t track_stereo_image(const cv::Mat& left_img_rect, const cv::Mat& right_img_rect, const double timestamp, const cv::Mat& mask = cv::Mat{});
+    Mat44_t track_stereo_image(const cv::Mat& left_img_rect, const cv::Mat& right_img_rect, const double timestamp, const cv::Mat& mask = cv::Mat{}, const data::objectdetection& objects = data::objectdetection{});
 
     //! Track an RGBD frame
     //! (Note: RGB and Depth images must be aligned)

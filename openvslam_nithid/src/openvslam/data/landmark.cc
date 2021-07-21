@@ -3,6 +3,7 @@
 #include "openvslam/data/landmark.h"
 #include "openvslam/data/map_database.h"
 #include "openvslam/match/base.h"
+#include <spdlog/spdlog.h>
 
 #include <nlohmann/json.hpp>
 

@@ -23,6 +23,50 @@ relocalizer::relocalizer(data::bow_database* bow_db,
 relocalizer::~relocalizer() {
     spdlog::debug("DESTRUCT: module::relocalizer");
 }
+#include <math.h>
+signed int filter_by_object(data::keyframe* keyfrm, data::frame& frm) {
+    spdlog::warn("filter_by_object");
+    const auto lm_key = keyfrm->get_landmarks();
+
+    signed int matched = 0;
+    for (unsigned int idx_frm = 0; idx_frm < frm.labels_.size(); ++idx_frm) {
+        // 1. Check if object in frame is in candidate or not
+        spdlog::warn("filter_by_object loop {}", idx_frm);
+        auto found = std::find(keyfrm->labels_.begin(), keyfrm->labels_.end(), frm.labels_.at(idx_frm));
+        if (found == std::end(keyfrm->labels_)){
+            spdlog::warn("loop not found");
+            continue;
+        }
+        unsigned int idx_key = found - keyfrm->labels_.begin();
+        spdlog::warn("idx_key {}", idx_key);
+        spdlog::warn("frm.labels_.at(idx_frm) {} keyfrm->labels_.at(idx_key) {}", frm.labels_.at(idx_frm), keyfrm->labels_.at(idx_key));
+        // 2. If found, how similarity of position
+        // const auto pos_frm = frm.landmarks_.at(idx_frm)->get_pos_in_world();
+        // const auto pos_key = lm_key.at(idx_key)->get_pos_in_world();
+        auto* lm_idx = frm.landmarks_.at(idx_frm);
+        if (!lm_idx) {
+            spdlog::warn("No landmark {}", idx_frm);
+            continue;
+        }
+        if (frm.outlier_flags_.at(idx_frm)) {
+            spdlog::warn("outlier_flags_ idx_key {}", idx_frm);
+            continue;
+        }
+        spdlog::warn("Get frame landmark");
+        const Vec3_t pos_frm = lm_idx->get_pos_in_world();
+
+        spdlog::warn("Get key landmark");
+        auto* key_idx = lm_key.at(idx_key);
+        const Vec3_t pos_key = key_idx->get_pos_in_world();
+
+        float distance = cv::sqrt(std::pow(pos_frm(0)-pos_key(0), 2)+std::pow(pos_frm(1)-pos_key(1), 2)+std::pow(pos_frm(2)-pos_key(2), 2));
+        spdlog::warn("Distance {}", distance);
+    }
+    spdlog::warn("filter_by_object done");
+    return 0;
+
+}
+
 
 bool relocalizer::relocalize(data::frame& curr_frm) {
     curr_frm.compute_bow();
@@ -42,6 +86,9 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
         if (keyfrm->will_be_erased()) {
             continue;
         }
+
+        // TODO: Design how to filter. Score, threshold (If frame have no object, what should we do)
+        const auto matches_object = filter_by_object(keyfrm, curr_frm);
 
         const auto num_matches = bow_matcher_.match_frame_and_keyframe(keyfrm, curr_frm, matched_landmarks.at(i));
         // discard the candidate if the number of 2D-3D matches is less than the threshold

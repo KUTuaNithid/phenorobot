@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <atomic>
+#include <math.h> 
 
 #include <opencv2/core.hpp>
 #include <Eigen/Core>
@@ -33,6 +34,24 @@ namespace data {
 
 class keyframe;
 class landmark;
+
+class objectdetection {
+public:
+    using pos_t = std::tuple<float, float>;
+    std::map<pos_t, std::string> label_pos;
+
+    // using object_t = std::tuple<float, signed long int, signed long int, signed long int, signed long int, signed short int, std::string>;
+    using object_t = std::tuple<float, signed long int, signed long int, signed long int, signed long int, signed short int, std::string, float>;
+
+    void add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class, float depth);
+    // void add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class);
+
+    // void compute_label_pos(float percent);
+
+    std::string get_label(float x, float y);
+private:
+    std::vector<object_t> objects_;
+};
 
 class frame {
 public:
@@ -73,7 +92,7 @@ public:
     frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const double timestamp,
           feature::orb_extractor* extractor_left, feature::orb_extractor* extractor_right, bow_vocabulary* bow_vocab,
           camera::base* camera, const float depth_thr,
-          const cv::Mat& mask = cv::Mat{});
+          const cv::Mat& mask = cv::Mat{}, const data::objectdetection& objects = data::objectdetection{});
 
     /**
      * Constructor for RGBD frame
@@ -90,6 +109,8 @@ public:
           feature::orb_extractor* extractor, bow_vocabulary* bow_vocab,
           camera::base* camera, const float depth_thr,
           const cv::Mat& mask = cv::Mat{});
+
+    void label_keypoints();
 
     /**
      * Set camera pose and refresh rotation and translation
@@ -196,7 +217,11 @@ public:
     std::vector<float> stereo_x_right_;
     //! depths
     std::vector<float> depths_;
-
+    //! objects
+    objectdetection objects_;
+    //! labels
+    std::vector<std::string> labels_;
+    
     //! BoW features (DBoW2 or FBoW)
 #ifdef USE_DBOW2
     DBoW2::BowVector bow_vec_;

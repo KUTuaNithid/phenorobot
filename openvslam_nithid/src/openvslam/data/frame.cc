@@ -51,12 +51,71 @@ frame::frame(const cv::Mat& img_gray, const double timestamp,
     assign_keypoints_to_grid(camera_, undist_keypts_, keypt_indices_in_cells_);
 }
 
+// void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class) {
+void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class, float depth) {
+    // spdlog::warn("add_object {}", Class.c_str());
+    objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class, depth));
+    // objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class));
+}
+
+// void objectdetection::compute_label_pos(float percent) {
+//     // spdlog::warn("Enter compute_label_pos");
+//     for (const auto object : objects) {
+//         float prob = std::get<0>(object);
+//         signed long int x_cen = std::get<1>(object);
+//         signed long int y_cen = std::get<2>(object);
+//         signed long int width = std::get<3>(object);
+//         signed long int height = std::get<4>(object);
+//         signed short int id = std::get<5>(object);
+//         std::string Class = std::get<6>(object);
+//         // spdlog::warn("Class {}", Class.c_str());
+
+//         // Size of selected depends on size of bounding box
+//         float weight = (width * height) * percent;
+//         int area_div = sqrt(weight) / 2;
+//         // spdlog::warn("x_cen - area_div {}, x_cen + area_div {}", x_cen - area_div, x_cen + area_div);
+//         // spdlog::warn("y_cen - area_div {}, y_cen + area_div {}", y_cen - area_div, y_cen + area_div);
+
+//         for (unsigned int j = x_cen - area_div; j < x_cen + area_div; j++) {
+//             for (unsigned int i = y_cen - area_div; i < y_cen + area_div; i++) {
+//                 label_pos[std::make_tuple(i, j)] = Class;
+//             }
+//         }
+//     }
+// }
+
+std::string objectdetection::get_label(float x, float y) {
+    // Check x, y
+    for (const auto object : objects_) {
+        float prob = std::get<0>(object);
+        signed long int x_cen = std::get<1>(object);
+        signed long int y_cen = std::get<2>(object);
+        signed long int width = std::get<3>(object);
+        signed long int height = std::get<4>(object);
+        signed short int id = std::get<5>(object);
+        std::string Class = std::get<6>(object);
+
+        float x_min = x_cen - (width/2);
+        float x_max = x_cen + (width/2);
+        float y_min = y_cen - (height/2);
+        float y_max = y_cen + (height/2);
+
+        if(x > x_min && x < x_max && y>y_min && y < y_max) {
+            return Class;
+        }
+    }
+
+    std::string nolabel = "No label";
+    return nolabel;
+
+}
+
 frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const double timestamp,
              feature::orb_extractor* extractor_left, feature::orb_extractor* extractor_right,
              bow_vocabulary* bow_vocab, camera::base* camera, const float depth_thr,
-             const cv::Mat& mask)
+             const cv::Mat& mask, const data::objectdetection& objects)
     : id_(next_id_++), bow_vocab_(bow_vocab), extractor_(extractor_left), extractor_right_(extractor_right),
-      timestamp_(timestamp), camera_(camera), depth_thr_(depth_thr) {
+      timestamp_(timestamp), camera_(camera), depth_thr_(depth_thr), objects_(objects) {
     // Get ORB scale
     update_orb_info();
 
@@ -83,12 +142,30 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
     // Convert to bearing vector
     camera->convert_keypoints_to_bearings(undist_keypts_, bearings_);
 
+    // Assign label follow undist keypoint
+    labels_ = std::vector<std::string>(num_keypts_, "No label");
+    label_keypoints();
+    // spdlog::warn("label_keypoints DONE");
+
     // Initialize association with 3D points
     landmarks_ = std::vector<landmark*>(num_keypts_, nullptr);
     outlier_flags_ = std::vector<bool>(num_keypts_, false);
 
     // Assign all the keypoints into grid
     assign_keypoints_to_grid(camera_, undist_keypts_, keypt_indices_in_cells_);
+    // spdlog::warn("assign_keypoints_to_grid DONE");
+}
+
+void frame::label_keypoints(){
+    for (unsigned int idx_left = 0; idx_left < num_keypts_; ++idx_left) {
+        // spdlog::warn("idx_left {}", idx_left);
+        // const auto& keypt_left = keypts_.at(idx_left);
+        const auto& keypt_left = undist_keypts_.at(idx_left);
+        const float y = keypt_left.pt.y;
+        const float x = keypt_left.pt.x;
+        labels_.at(idx_left) = objects_.get_label(x, y);
+        // spdlog::warn("labels_.at({}) {}", idx_left, labels_.at(idx_left));
+    }
 }
 
 frame::frame(const cv::Mat& img_gray, const cv::Mat& img_depth, const double timestamp,

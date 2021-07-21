@@ -31,13 +31,20 @@ stereo::stereo(const std::shared_ptr<openvslam::config>& cfg, const std::string&
                const bool rectify)
     : system(cfg, vocab_file_path, mask_img_path),
       rectifier_(rectify ? std::make_shared<openvslam::util::stereo_rectifier>(cfg) : nullptr),
-      left_sf_(it_, "camera/left/image_raw", 1),
-      right_sf_(it_, "camera/right/image_raw", 1),
-      sync_(SyncPolicy(10), left_sf_, right_sf_) {
-    sync_.registerCallback(&stereo::callback, this);
+      left_sf_(nh_, "camera/left/image_raw", 1),
+      right_sf_(nh_, "camera/right/image_raw", 1),
+      bdbox_sf_(nh_, "camera/boundingbox", 1) {
+    sync_.reset(new Sync(SyncPolicy(10), left_sf_, right_sf_, bdbox_sf_));
+    //   sync_(SyncPolicy(10), left_sf_, right_sf_, bdbox_sf_) {
+    //   left_sf_(nh_, "camera/left/image_raw", 1),
+    //   right_sf_(nh_, "camera/right/image_raw", 1),
+    //   sync_(SyncPolicy(10), left_sf_, right_sf_) {
+    // sync_.registerCallback(&stereo::callback, this);
+    sync_->registerCallback(boost::bind(&stereo::callback, this, _1, _2, _3));
 }
 
-void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right) {
+void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right, const darknet_ros_msgs::centerBdboxes::ConstPtr &bdbox) {
+// void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs::ImageConstPtr& right) {
     auto leftcv = cv_bridge::toCvShare(left)->image;
     auto rightcv = cv_bridge::toCvShare(right)->image;
     if (leftcv.empty() || rightcv.empty()) {
@@ -51,8 +58,19 @@ void stereo::callback(const sensor_msgs::ImageConstPtr& left, const sensor_msgs:
     const auto tp_1 = std::chrono::steady_clock::now();
     const auto timestamp = std::chrono::duration_cast<std::chrono::duration<double>>(tp_1 - tp_0_).count();
 
+    // Transform bdbox to openvslam bdbox
+    openvslam::data::objectdetection objects;
+    
+    for(unsigned int i = 0; i < bdbox->centerBdboxes.size(); i++){
+        objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class, bdbox->centerBdboxes[i].depth);
+        // objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class);
+        // if (bdbox->centerBdboxes[i].depth != -1)
+        //     ROS_INFO("bdbox->centerBdboxes[i].Class %s bdbox->centerBdboxes[i].depth %f", bdbox->centerBdboxes[i].Class.c_str(), bdbox->centerBdboxes[i].depth);
+    }
+    
     // input the current frame and estimate the camera pose
-    SLAM_.feed_stereo_frame(leftcv, rightcv, timestamp, mask_);
+    // SLAM_.feed_stereo_frame(leftcv, rightcv, timestamp, mask_);
+    SLAM_.feed_stereo_frame(leftcv, rightcv, timestamp, mask_, objects);
 
     const auto tp_2 = std::chrono::steady_clock::now();
 

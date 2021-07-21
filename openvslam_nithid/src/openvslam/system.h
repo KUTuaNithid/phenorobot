@@ -3,6 +3,7 @@
 
 #include "openvslam/type.h"
 #include "openvslam/data/bow_vocabulary.h"
+#include "openvslam/data/frame.h"
 
 #include <string>
 #include <thread>
@@ -107,7 +108,7 @@ public:
 
     //! Feed a stereo frame to SLAM system
     //! (Note: Left and Right images must be stereo-rectified)
-    Mat44_t feed_stereo_frame(const cv::Mat& left_img, const cv::Mat& right_img, const double timestamp, const cv::Mat& mask = cv::Mat{});
+    Mat44_t feed_stereo_frame(const cv::Mat& left_img, const cv::Mat& right_img, const double timestamp, const cv::Mat& mask = cv::Mat{}, const data::objectdetection& objects = data::objectdetection{});
 
     //! Feed an RGBD frame to SLAM system
     //! (Note: RGB and Depth images must be aligned)

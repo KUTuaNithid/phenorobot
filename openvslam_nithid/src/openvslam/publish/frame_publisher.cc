@@ -25,6 +25,7 @@ cv::Mat frame_publisher::draw_frame(const bool draw_text) {
     std::vector<cv::KeyPoint> init_keypts;
     std::vector<int> init_matches;
     std::vector<cv::KeyPoint> curr_keypts;
+    std::vector<std::string> curr_labels;
     double elapsed_ms;
     bool mapping_is_enabled;
     std::vector<bool> is_tracked;
@@ -44,6 +45,8 @@ cv::Mat frame_publisher::draw_frame(const bool draw_text) {
         }
 
         curr_keypts = curr_keypts_;
+
+        curr_labels = curr_labels_;
 
         elapsed_ms = elapsed_ms_;
 
@@ -71,7 +74,7 @@ cv::Mat frame_publisher::draw_frame(const bool draw_text) {
             break;
         }
         case tracker_state_t::Tracking: {
-            num_tracked = draw_tracked_points(img, curr_keypts, is_tracked, mapping_is_enabled, mag);
+            num_tracked = draw_tracked_points(img, curr_keypts, is_tracked, mapping_is_enabled, curr_labels, mag);
             break;
         }
         default: {
@@ -109,6 +112,7 @@ unsigned int frame_publisher::draw_initial_points(cv::Mat& img, const std::vecto
 
 unsigned int frame_publisher::draw_tracked_points(cv::Mat& img, const std::vector<cv::KeyPoint>& curr_keypts,
                                                   const std::vector<bool>& is_tracked, const bool mapping_is_enabled,
+                                                  const std::vector<std::string>& curr_labels,
                                                   const float mag) const {
     constexpr float radius = 5;
 
@@ -123,8 +127,23 @@ unsigned int frame_publisher::draw_tracked_points(cv::Mat& img, const std::vecto
         const cv::Point2f pt_end{curr_keypts.at(i).pt.x * mag + radius, curr_keypts.at(i).pt.y * mag + radius};
 
         if (mapping_is_enabled) {
-            cv::rectangle(img, pt_begin, pt_end, mapping_color_);
-            cv::circle(img, curr_keypts.at(i).pt * mag, 2, mapping_color_, -1);
+            if (curr_labels.at(i) != "No label"){
+                cv::Scalar teddy{50, 200, 200};
+                cv::Scalar chair{255, 0, 0};
+                if(curr_labels.at(i) == "person") {
+                    cv::rectangle(img, pt_begin, pt_end, teddy);
+                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, teddy, -1);
+                } else if(curr_labels.at(i) == "chair"){
+                    cv::rectangle(img, pt_begin, pt_end, chair);
+                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, chair, -1);
+                } else {
+                    cv::rectangle(img, pt_begin, pt_end, label_color_);
+                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, label_color_, -1);
+                }
+            } else {
+                cv::rectangle(img, pt_begin, pt_end, mapping_color_);
+                cv::circle(img, curr_keypts.at(i).pt * mag, 2, mapping_color_, -1);
+            }
         }
         else {
             cv::rectangle(img, pt_begin, pt_end, localization_color_);
@@ -190,6 +209,7 @@ void frame_publisher::update(tracking_module* tracker) {
     elapsed_ms_ = tracker->elapsed_ms_;
     mapping_is_enabled_ = tracker->get_mapping_module_status();
     tracking_state_ = tracker->last_tracking_state_;
+    curr_labels_ = tracker->curr_frm_.labels_;
 
     is_tracked_ = std::vector<bool>(num_curr_keypts, false);
 

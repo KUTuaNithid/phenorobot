@@ -97,7 +97,7 @@ Mat44_t tracking_module::track_monocular_image(const cv::Mat& img, const double 
     return curr_frm_.cam_pose_cw_;
 }
 
-Mat44_t tracking_module::track_stereo_image(const cv::Mat& left_img_rect, const cv::Mat& right_img_rect, const double timestamp, const cv::Mat& mask) {
+Mat44_t tracking_module::track_stereo_image(const cv::Mat& left_img_rect, const cv::Mat& right_img_rect, const double timestamp, const cv::Mat& mask, const data::objectdetection& objects) {
     const auto start = std::chrono::system_clock::now();
 
     // color conversion
@@ -107,8 +107,8 @@ Mat44_t tracking_module::track_stereo_image(const cv::Mat& left_img_rect, const 
     util::convert_to_grayscale(right_img_gray, camera_->color_order_);
 
     // create current frame object
-    curr_frm_ = data::frame(img_gray_, right_img_gray, timestamp, extractor_left_, extractor_right_, bow_vocab_, camera_, cfg_->true_depth_thr_, mask);
-
+    curr_frm_ = data::frame(img_gray_, right_img_gray, timestamp, extractor_left_, extractor_right_, bow_vocab_, camera_, cfg_->true_depth_thr_, mask, objects);
+    
     track();
 
     const auto end = std::chrono::system_clock::now();

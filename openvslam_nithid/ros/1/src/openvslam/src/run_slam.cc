@@ -27,6 +27,22 @@ void tracking(const std::shared_ptr<openvslam::config>& cfg, const std::string& 
               const std::string& mask_img_path, const bool eval_log, const std::string& map_db_path,
               const bool rectify) {
     std::shared_ptr<openvslam_ros::system> ros;
+    ROS_INFO("serviceClient");
+    ros::NodeHandle n;
+    // ros::ServiceClient client = ros->nh_.serviceClient<darknet_ros_msgs::get_camParam>("add_two_ints");
+    ros::ServiceClient client = n.serviceClient<darknet_ros_msgs::get_camParam>("add_two_ints");
+    darknet_ros_msgs::get_camParam srv;
+    ROS_INFO("call");
+    if (client.call(srv)) {
+        ROS_INFO("Revise cam param with ZED online calibration: fx = %f", srv.response.fx);
+        cfg->update_cam_param(srv.response.fx, srv.response.fy, srv.response.cx, srv.response.cy,
+                              srv.response.k1, srv.response.k2, srv.response.p1, srv.response.p2, srv.response.k3,
+                              srv.response.focal_x_baseline);
+    }
+    else {
+        ROS_ERROR("Failed to call service add_two_ints");
+        return;
+    }
     if (cfg->camera_->setup_type_ == openvslam::camera::setup_type_t::Monocular) {
         ros = std::make_shared<openvslam_ros::mono>(cfg, vocab_file_path, mask_img_path);
     }
@@ -170,6 +186,7 @@ int main(int argc, char* argv[]) {
     // load configuration
     std::shared_ptr<openvslam::config> cfg;
     try {
+        ROS_INFO("load config");
         cfg = std::make_shared<openvslam::config>(setting_file_path->value());
     }
     catch (const std::exception& e) {

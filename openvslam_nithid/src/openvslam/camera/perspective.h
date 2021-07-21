@@ -87,19 +87,29 @@ public:
     // Parameters specific to this model
 
     //! pinhole params
-    const double fx_;
-    const double fy_;
-    const double cx_;
-    const double cy_;
+    // const double fx_;
+    // const double fy_;
+    // const double cx_;
+    // const double cy_;
+    // May updated online by zed
+    double fx_;
+    double fy_;
+    double cx_;
+    double cy_;
     const double fx_inv_;
     const double fy_inv_;
 
     //! distortion params
-    const double k1_;
-    const double k2_;
-    const double p1_;
-    const double p2_;
-    const double k3_;
+    double k1_;
+    double k2_;
+    double p1_;
+    double p2_;
+    double k3_;
+    // const double k1_;
+    // const double k2_;
+    // const double p1_;
+    // const double p2_;
+    // const double k3_;
 
     //! camera matrix in OpenCV format
     cv::Mat cv_cam_matrix_;
