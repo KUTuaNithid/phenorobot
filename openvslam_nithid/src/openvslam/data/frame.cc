@@ -51,11 +51,9 @@ frame::frame(const cv::Mat& img_gray, const double timestamp,
     assign_keypoints_to_grid(camera_, undist_keypts_, keypt_indices_in_cells_);
 }
 
-// void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class) {
 void objectdetection::add_object(float probability, signed long int x_cen, signed long int y_cen, signed long int width, signed long int height, signed short int id, std::string Class, float depth) {
     // spdlog::warn("add_object {}", Class.c_str());
     objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class, depth));
-    // objects_.push_back(std::make_tuple(probability, x_cen, y_cen, width, height, id, Class));
 }
 
 // void objectdetection::compute_label_pos(float percent) {
@@ -144,7 +142,9 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
 
     // Assign label follow undist keypoint
     labels_ = std::vector<std::string>(num_keypts_, "No label");
-    label_keypoints();
+    create_label_pos();
+    // label_keypoints();
+
     // spdlog::warn("label_keypoints DONE");
 
     // Initialize association with 3D points
@@ -154,6 +154,35 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
     // Assign all the keypoints into grid
     assign_keypoints_to_grid(camera_, undist_keypts_, keypt_indices_in_cells_);
     // spdlog::warn("assign_keypoints_to_grid DONE");
+}
+
+void frame::create_label_pos(){
+    for (auto object : objects_.objects_) {
+        float prob = std::get<0>(object);
+        signed long int x_cen = std::get<1>(object);
+        signed long int y_cen = std::get<2>(object);
+        signed long int width = std::get<3>(object);
+        signed long int height = std::get<4>(object);
+        signed short int id = std::get<5>(object);
+        std::string Class = std::get<6>(object);
+        float depth = std::get<7>(object);
+
+        // Triangulate to get real world coordinates
+        auto camera = static_cast<camera::perspective*>(camera_);
+        const float x = x_cen;
+        const float y = y_cen;
+        const float unproj_x = (x - camera->cx_) * depth * camera->fx_inv_;
+        const float unproj_y = (y - camera->cy_) * depth * camera->fy_inv_;
+        const Vec3_t pos_c{unproj_x, unproj_y, depth};
+        std::pair<std::map<std::string, std::vector<Vec3_t>>::iterator, bool> ret;
+        std::vector<Vec3_t> v_pos_c;
+        v_pos_c.push_back(pos_c);
+        ret = label_pos.insert(std::pair<std::string, std::vector<Vec3_t>>(Class, v_pos_c));
+        if (ret.second == false) {
+            spdlog::warn("create_label_pos: Duplicate class {}", Class);
+            label_pos[Class].push_back(pos_c);
+        }
+    }
 }
 
 void frame::label_keypoints(){

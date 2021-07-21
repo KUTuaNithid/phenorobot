@@ -37,8 +37,7 @@ class landmark;
 
 class objectdetection {
 public:
-    using pos_t = std::tuple<float, float>;
-    std::map<pos_t, std::string> label_pos;
+    using pos_t = std::tuple<float, float, float>;
 
     // using object_t = std::tuple<float, signed long int, signed long int, signed long int, signed long int, signed short int, std::string>;
     using object_t = std::tuple<float, signed long int, signed long int, signed long int, signed long int, signed short int, std::string, float>;
@@ -49,7 +48,6 @@ public:
     // void compute_label_pos(float percent);
 
     std::string get_label(float x, float y);
-private:
     std::vector<object_t> objects_;
 };
 
@@ -111,6 +109,8 @@ public:
           const cv::Mat& mask = cv::Mat{});
 
     void label_keypoints();
+
+    void create_label_pos();
 
     /**
      * Set camera pose and refresh rotation and translation
@@ -221,6 +221,7 @@ public:
     objectdetection objects_;
     //! labels
     std::vector<std::string> labels_;
+    std::map<std::string, std::vector<Vec3_t>> label_pos;
     
     //! BoW features (DBoW2 or FBoW)
 #ifdef USE_DBOW2
