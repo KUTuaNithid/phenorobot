@@ -23,10 +23,13 @@ keyframe::keyframe(const frame& frm, map_database* map_db, bow_database* bow_db)
       // camera parameters
       camera_(frm.camera_), depth_thr_(frm.depth_thr_),
       // constant observations
-      num_keypts_(frm.num_keypts_), keypts_(frm.keypts_), undist_keypts_(frm.undist_keypts_), bearings_(frm.bearings_),
+      num_keypts_(frm.num_keypts_), 
+      num_lbpos_(frm.num_lbpos_), 
+      keypts_(frm.keypts_), undist_keypts_(frm.undist_keypts_), bearings_(frm.bearings_),
       keypt_indices_in_cells_(frm.keypt_indices_in_cells_),
       stereo_x_right_(frm.stereo_x_right_), depths_(frm.depths_), descriptors_(frm.descriptors_.clone()),
-      labels_(frm.label_pos),
+      labels_(frm.labels_),
+      labels_pos(frm.labels_pos),
       // BoW
       bow_vec_(frm.bow_vec_), bow_feat_vec_(frm.bow_feat_vec_),
       // covisibility graph node (connections is not assigned yet)
@@ -45,10 +48,10 @@ keyframe::keyframe(const frame& frm, map_database* map_db, bow_database* bow_db)
 
 keyframe::keyframe(const unsigned int id, const unsigned int src_frm_id, const double timestamp,
                    const Mat44_t& cam_pose_cw, camera::base* camera, const float depth_thr,
-                   const unsigned int num_keypts, const std::vector<cv::KeyPoint>& keypts,
+                   const unsigned int num_keypts, const unsigned int num_lblpos, const std::vector<cv::KeyPoint>& keypts,
                    const std::vector<cv::KeyPoint>& undist_keypts, const eigen_alloc_vector<Vec3_t>& bearings,
                    const std::vector<float>& stereo_x_right, const std::vector<float>& depths, const cv::Mat& descriptors,
-                   const  std::map<std::string, std::vector<Vec3_t>>& labels,
+                   const std::vector<std::string>& labels, eigen_alloc_vector<Vec3_t>& labels_pos,
                    const unsigned int num_scale_levels, const float scale_factor,
                    bow_vocabulary* bow_vocab, bow_database* bow_db, map_database* map_db)
     : // meta information
@@ -56,10 +59,13 @@ keyframe::keyframe(const unsigned int id, const unsigned int src_frm_id, const d
       // camera parameters
       camera_(camera), depth_thr_(depth_thr),
       // constant observations
-      num_keypts_(num_keypts), keypts_(keypts), undist_keypts_(undist_keypts), bearings_(bearings),
+      num_keypts_(num_keypts), 
+      num_lbpos_(num_lbpos_), 
+      keypts_(keypts), undist_keypts_(undist_keypts), bearings_(bearings),
       keypt_indices_in_cells_(assign_keypoints_to_grid(camera, undist_keypts)),
       stereo_x_right_(stereo_x_right), depths_(depths), descriptors_(descriptors.clone()),
       labels_(labels),
+      labels_pos(labels_pos),
       // graph node (connections is not assigned yet)
       graph_node_(std::unique_ptr<graph_node>(new graph_node(this, false))),
       // ORB scale pyramid
@@ -123,12 +129,14 @@ nlohmann::json keyframe::to_json() const {
             {"trans_cw", convert_translation_to_json(cam_pose_cw_.block<3, 1>(0, 3))},
             // features and observations
             {"n_keypts", num_keypts_},
+            {"n_lbpos", num_lbpos_},
             {"keypts", convert_keypoints_to_json(keypts_)},
             {"undists", convert_undistorted_to_json(undist_keypts_)},
             {"x_rights", stereo_x_right_},
             {"depths", depths_},
             {"descs", convert_descriptors_to_json(descriptors_)},
             {"labels", labels_},
+            {"labels_pos", labels_pos},
             {"lm_ids", landmark_ids},
             // orb scale information
             {"n_scale_levels", num_scale_levels_},

@@ -25,31 +25,27 @@ relocalizer::~relocalizer() {
 }
 #include <math.h>
 signed int filter_by_object(data::keyframe* candidate_kfrm, data::frame& qry_frm) {
-    spdlog::warn("filter_by_object");
-    auto qry_labels = qry_frm.label_pos;
-    auto key_labels = candidate_kfrm->labels_;
-
-    for(auto qry:qry_labels){
-        std::multimap<std::string, std::vector<Vec3_t>>::iterator ret;
-        ret = key_labels.find(qry.first);
-        if (ret != key_labels.end()) {
-            for (auto key_pos : ret->second) {
-                for (auto qry_pos : qry.second) {
-                    auto x1 = key_pos(0);
-                    auto y1 = key_pos(1);
-                    auto z1 = key_pos(2);
-                    auto x2 = qry_pos(0);
-                    auto y2 = qry_pos(1);
-                    auto z2 = qry_pos(2);
-                    long double distance = std::sqrt(std::pow(x1 - x2, 2.0) + std::pow(y1 - y2, 2.0) + std::pow(z1 - z2, 2.0));
-                    spdlog::warn("MATCHED {} and {}, distance {}", ret->first, qry.first, distance);
+    spdlog::debug("filter_by_object");
+    signed int ret = 0;
+    for (unsigned int idx_qry = 0; idx_qry < qry_frm.num_lbpos_; ++idx_qry) {
+        for(unsigned int idx_krm = 0; idx_krm < candidate_kfrm->num_lbpos_; ++idx_krm) {
+            if (qry_frm.labels_.at(idx_qry) == candidate_kfrm->labels_.at(idx_krm)) {
+                auto x1 = candidate_kfrm->labels_pos(0);
+                auto y1 = candidate_kfrm->labels_pos(1);
+                auto z1 = candidate_kfrm->labels_pos(2);
+                auto x2 = qry_frm.labels_pos(0);
+                auto y2 = qry_frm.labels_pos(1);
+                auto z2 = qry_frm.labels_pos(2);
+                long double distance = std::sqrt(std::pow(x1 - x2, 2.0) + std::pow(y1 - y2, 2.0) + std::pow(z1 - z2, 2.0));
+                spdlog::debug("filter_by_object: Found same object {},{} distance is {}", qry_frm.labels_.at(idx_qry), candidate_kfrm->labels_.at(idx_krm), distance);
+                if (distance < 0.1) {
+                    spdlog::debug("filter_by_object: This is same object");
+                    ++ret;
                 }
             }
         }
     }
-    spdlog::warn("filter_by_object done");
-    return 0;
-
+    return ret;
 }
 
 
@@ -72,8 +68,15 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
             continue;
         }
 
-        // TODO: Design how to filter. Score, threshold (If frame have no object, what should we do)
-        const auto matches_object = filter_by_object(keyfrm, curr_frm);
+        if (curr_frm.labels_.size() > 0) {
+            spdlog::debug("relocalize: Current frame have object!");
+            // TODO: Design how to filter. Score, threshold (If frame have no object, what should we do)
+            const auto matches_object = filter_by_object(keyfrm, curr_frm);
+            if ret < 1 {
+                spdlog::debug("relocalize: Object can't be matched");
+                continue;
+            }
+        }
 
         const auto num_matches = bow_matcher_.match_frame_and_keyframe(keyfrm, curr_frm, matched_landmarks.at(i));
         // discard the candidate if the number of 2D-3D matches is less than the threshold

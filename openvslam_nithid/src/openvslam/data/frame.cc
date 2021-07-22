@@ -143,6 +143,7 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
     // Assign label follow undist keypoint
     labels_ = std::vector<std::string>(num_keypts_, "No label");
     create_label_pos();
+    num_lbpos_ = labels_.size();
     // label_keypoints();
 
     // spdlog::warn("label_keypoints DONE");
@@ -174,14 +175,8 @@ void frame::create_label_pos(){
         const float unproj_x = (x - camera->cx_) * depth * camera->fx_inv_;
         const float unproj_y = (y - camera->cy_) * depth * camera->fy_inv_;
         const Vec3_t pos_c{unproj_x, unproj_y, depth};
-        std::pair<std::map<std::string, std::vector<Vec3_t>>::iterator, bool> ret;
-        std::vector<Vec3_t> v_pos_c;
-        v_pos_c.push_back(pos_c);
-        ret = label_pos.insert(std::pair<std::string, std::vector<Vec3_t>>(Class, v_pos_c));
-        if (ret.second == false) {
-            spdlog::warn("create_label_pos: Duplicate class {}", Class);
-            label_pos[Class].push_back(pos_c);
-        }
+        labels_.push_back(Class);
+        labels_pos.push_back(pos_c);
     }
 }
 

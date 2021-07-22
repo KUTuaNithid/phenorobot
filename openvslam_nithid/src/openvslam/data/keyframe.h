@@ -56,10 +56,10 @@ public:
      */
     keyframe(const unsigned int id, const unsigned int src_frm_id, const double timestamp,
              const Mat44_t& cam_pose_cw, camera::base* camera, const float depth_thr,
-             const unsigned int num_keypts, const std::vector<cv::KeyPoint>& keypts,
+             const unsigned int num_keypts, const unsigned int num_lbpos_, const std::vector<cv::KeyPoint>& keypts,
              const std::vector<cv::KeyPoint>& undist_keypts, const eigen_alloc_vector<Vec3_t>& bearings,
              const std::vector<float>& stereo_x_right, const std::vector<float>& depths, const cv::Mat& descriptors,
-             const  std::map<std::string, std::vector<Vec3_t>>& labels,
+             const std::vector<std::string>& labels, eigen_alloc_vector<Vec3_t>& labels_pos,
              const unsigned int num_scale_levels, const float scale_factor,
              bow_vocabulary* bow_vocab, bow_database* bow_db, map_database* map_db);
 
@@ -236,6 +236,7 @@ public:
 
     //! number of keypoints
     const unsigned int num_keypts_;
+    const unsigned int num_lbpos_;
 
     //! keypoints of monocular or stereo left image
     const std::vector<cv::KeyPoint> keypts_;
@@ -252,7 +253,8 @@ public:
     //! depths
     const std::vector<float> depths_;
     //! labels
-    const std::map<std::string, std::vector<Vec3_t>> labels_;
+    std::vector<std::string> labels_;
+    eigen_alloc_vector<Vec3_t> labels_pos;
 
     //! descriptors
     const cv::Mat descriptors_;
