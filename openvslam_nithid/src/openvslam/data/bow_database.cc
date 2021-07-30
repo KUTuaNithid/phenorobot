@@ -54,10 +54,100 @@ void bow_database::clear() {
     keyfrms_in_node_.clear();
 }
 
+std::vector<keyframe*> bow_database::accquire_candidates_byObject_frm(frame* qry_keyfrm) {
+    std::unordered_set<keyframe*> object_candidates;
+    bool found = false;
+    for (const auto& keyfrm_in_node : keyfrms_in_node_) {
+        const auto& keyfrms = keyfrm_in_node.second;
+        for (auto& keyfrm : keyfrms) {
+            for (unsigned int idx_qry = 0; idx_qry < qry_keyfrm->num_lbpos_; ++idx_qry) {
+                for (unsigned int idx_krm = 0; idx_krm < keyfrm->num_lbpos_; ++idx_krm) {
+                    if (qry_keyfrm->labels_.at(idx_qry) == keyfrm->labels_.at(idx_krm)) {
+                        // auto x1 = keyfrm->labels_pos.at(idx_krm)(0);
+                        // auto y1 = keyfrm->labels_pos.at(idx_krm)(1);
+                        // auto z1 = keyfrm->labels_pos.at(idx_krm)(2);
+                        // auto x2 = qry_keyfrm->labels_pos.at(idx_qry)(0);
+                        // auto y2 = qry_keyfrm->labels_pos.at(idx_qry)(1);
+                        // auto z2 = qry_keyfrm->labels_pos.at(idx_qry)(2);
+                        // long double distance = std::sqrt(std::pow(x1 - x2, 2.0) + std::pow(y1 - y2, 2.0) + std::pow(z1 - z2, 2.0));
+                        // spdlog::debug("accquire_candidates_byObject: Found same object {},{} distance is {}", qry_keyfrm->labels_.at(idx_qry), keyfrm->labels_.at(idx_krm), distance);
+                        // if (distance < 0.1) {
+                        //     spdlog::debug("accquire_candidates_byObject: Matched object inserthis frame");
+                        //     break;
+                        // }
+                        object_candidates.insert(keyfrm);
+                        found = true;
+                    }
+                }
+                if (found == true) {
+                    found = false;
+                    break;
+                }
+            }
+        }
+    }
+    spdlog::debug("acquire_loop_candidates: Found object_candidates.size() {}", object_candidates.size());
+    if (object_candidates.size() > 0) {
+        return std::vector<keyframe*>(object_candidates.begin(), object_candidates.end());;
+    }
+    return std::vector<keyframe*>();
+}
+
+std::vector<keyframe*> bow_database::accquire_candidates_byObject(keyframe* qry_keyfrm) {
+    std::unordered_set<keyframe*> object_candidates;
+    bool found = false;
+    for (const auto& keyfrm_in_node : keyfrms_in_node_) {
+        const auto& keyfrms = keyfrm_in_node.second;
+        for (auto& keyfrm : keyfrms) {
+            for (unsigned int idx_qry = 0; idx_qry < qry_keyfrm->num_lbpos_; ++idx_qry) {
+                for (unsigned int idx_krm = 0; idx_krm < keyfrm->num_lbpos_; ++idx_krm) {
+                    if (qry_keyfrm->labels_.at(idx_qry) == keyfrm->labels_.at(idx_krm)) {
+                        // auto x1 = keyfrm->labels_pos.at(idx_krm)(0);
+                        // auto y1 = keyfrm->labels_pos.at(idx_krm)(1);
+                        // auto z1 = keyfrm->labels_pos.at(idx_krm)(2);
+                        // auto x2 = qry_keyfrm->labels_pos.at(idx_qry)(0);
+                        // auto y2 = qry_keyfrm->labels_pos.at(idx_qry)(1);
+                        // auto z2 = qry_keyfrm->labels_pos.at(idx_qry)(2);
+                        // long double distance = std::sqrt(std::pow(x1 - x2, 2.0) + std::pow(y1 - y2, 2.0) + std::pow(z1 - z2, 2.0));
+                        // spdlog::debug("accquire_candidates_byObject: Found same object {},{} distance is {}", qry_keyfrm->labels_.at(idx_qry), keyfrm->labels_.at(idx_krm), distance);
+                        // if (distance < 0.1) {
+                        //     spdlog::debug("accquire_candidates_byObject: Matched object insert this frame id {} idx_qry {} idx_krm {}", keyfrm->id_, idx_qry, idx_krm);
+                        //     object_candidates.insert(keyfrm);
+                        //     found = true;
+                        //     break;
+                        // }
+                        object_candidates.insert(keyfrm);
+                        found = true;
+                        break;
+                    }
+                }
+                if (found == true) {
+                    found = false;
+                    break;
+                }
+            }
+        }
+    }
+    spdlog::debug("acquire_loop_candidates: Found object_candidates.size() {}", object_candidates.size());
+    if (object_candidates.size() > 0) {
+        return std::vector<keyframe*>(object_candidates.begin(), object_candidates.end());;
+    }
+    return std::vector<keyframe*>();
+}
+
 std::vector<keyframe*> bow_database::acquire_loop_candidates(keyframe* qry_keyfrm, const float min_score) {
     std::lock_guard<std::mutex> lock(tmp_mtx_);
 
     initialize();
+
+    spdlog::debug("acquire_loop_candidates: qry_keyfrm->labels_.size() {}", qry_keyfrm->labels_.size());
+    if (qry_keyfrm->labels_.size() > 0) {
+        auto candidate = accquire_candidates_byObject(qry_keyfrm);
+        if (!candidate.empty()){
+            spdlog::debug("acquire_loop_candidates: Using object candidate");
+            return candidate;
+        }
+    }
 
     // Step 1.
     // Count up the number of nodes, words which are shared with query_keyframe, for all the keyframes in DoW database
@@ -123,7 +213,14 @@ std::vector<keyframe*> bow_database::acquire_relocalization_candidates(frame* qr
     std::lock_guard<std::mutex> lock(tmp_mtx_);
 
     initialize();
-
+    // spdlog::debug("acquire_relocalization_candidates: qry_frm->labels_.size() {}", qry_frm->labels_.size());
+    // if (qry_frm->labels_.size() > 0) {
+    //     auto candidate = accquire_candidates_byObject_frm(qry_frm);
+    //     if (!candidate.empty()){
+    //         spdlog::debug("acquire_loop_candidates: Using object candidate");
+    //         return candidate;
+    //     }
+    // }
     // Step 1.
     // Count up the number of nodes, words which are shared with query_keyframe, for all the keyframes in DoW database
 

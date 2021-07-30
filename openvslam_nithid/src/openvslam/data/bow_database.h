@@ -54,6 +54,9 @@ public:
      */
     std::vector<keyframe*> acquire_loop_candidates(keyframe* qry_keyfrm, const float min_score);
 
+std::vector<keyframe*> accquire_candidates_byObject(keyframe* qry_keyfrm);
+std::vector<keyframe*> accquire_candidates_byObject_frm(frame* qry_keyfrm);
+
     /**
      * Acquire relocalization candidates
      * @param qry_frm

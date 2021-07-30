@@ -127,23 +127,8 @@ unsigned int frame_publisher::draw_tracked_points(cv::Mat& img, const std::vecto
         const cv::Point2f pt_end{curr_keypts.at(i).pt.x * mag + radius, curr_keypts.at(i).pt.y * mag + radius};
 
         if (mapping_is_enabled) {
-            if (curr_labels.at(i) != "No label"){
-                cv::Scalar teddy{50, 200, 200};
-                cv::Scalar chair{255, 0, 0};
-                if(curr_labels.at(i) == "person") {
-                    cv::rectangle(img, pt_begin, pt_end, teddy);
-                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, teddy, -1);
-                } else if(curr_labels.at(i) == "chair"){
-                    cv::rectangle(img, pt_begin, pt_end, chair);
-                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, chair, -1);
-                } else {
-                    cv::rectangle(img, pt_begin, pt_end, label_color_);
-                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, label_color_, -1);
-                }
-            } else {
-                cv::rectangle(img, pt_begin, pt_end, mapping_color_);
-                cv::circle(img, curr_keypts.at(i).pt * mag, 2, mapping_color_, -1);
-            }
+            cv::rectangle(img, pt_begin, pt_end, mapping_color_);
+            cv::circle(img, curr_keypts.at(i).pt * mag, 2, mapping_color_, -1);
         }
         else {
             cv::rectangle(img, pt_begin, pt_end, localization_color_);
@@ -153,8 +138,8 @@ unsigned int frame_publisher::draw_tracked_points(cv::Mat& img, const std::vecto
         ++num_tracked;
     }
 
-    return num_tracked;
-}
+        return num_tracked;
+    }
 
 void frame_publisher::draw_info_text(cv::Mat& img, const tracker_state_t tracking_state, const unsigned int num_tracked,
                                      const double elapsed_ms, const bool mapping_is_enabled) const {

@@ -141,9 +141,9 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
     camera->convert_keypoints_to_bearings(undist_keypts_, bearings_);
 
     // Assign label follow undist keypoint
-    labels_ = std::vector<std::string>(num_keypts_, "No label");
+    // labels_ = std::vector<std::string>(num_keypts_, "No label");
     create_label_pos();
-    num_lbpos_ = labels_.size();
+    // num_lbpos_ = labels_.size();
     // label_keypoints();
 
     // spdlog::warn("label_keypoints DONE");
@@ -158,6 +158,8 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
 }
 
 void frame::create_label_pos(){
+    // spdlog::debug("Start create_label_pos");
+
     for (auto object : objects_.objects_) {
         float prob = std::get<0>(object);
         signed long int x_cen = std::get<1>(object);
@@ -174,10 +176,15 @@ void frame::create_label_pos(){
         const float y = y_cen;
         const float unproj_x = (x - camera->cx_) * depth * camera->fx_inv_;
         const float unproj_y = (y - camera->cy_) * depth * camera->fy_inv_;
+        // spdlog::debug("create_label_pos: unproj_x {} unproj_y {} depth {} x {} y {}", unproj_x, unproj_y, depth, x, y);
         const Vec3_t pos_c{unproj_x, unproj_y, depth};
+        auto pos_w = rot_wc_ * pos_c + cam_center_ ;
+        
+        // spdlog::debug("push create_label_pos: pos {} {} {} class {}", pos_w(0), pos_w(1), pos_w(2), Class);
         labels_.push_back(Class);
-        labels_pos.push_back(pos_c);
+        labels_pos.push_back(rot_wc_ * pos_c + cam_center_);
     }
+    num_lbpos_ = labels_.size();
 }
 
 void frame::label_keypoints(){

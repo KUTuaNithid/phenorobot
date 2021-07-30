@@ -14,6 +14,10 @@ nlohmann::json convert_rotation_to_json(const Mat33_t& rot_cw);
 
 Mat33_t convert_json_to_rotation(const nlohmann::json& json_rot_cw);
 
+nlohmann::json convert_labels_pos_to_json(const std::vector<Vec3_t>& labels_pos);
+
+std::vector<Vec3_t> convert_json_to_labels_pos(const nlohmann::json& json_labels_pos);
+
 nlohmann::json convert_translation_to_json(const Vec3_t& trans_cw);
 
 Vec3_t convert_json_to_translation(const nlohmann::json& json_trans_cw);

@@ -25,17 +25,16 @@ relocalizer::~relocalizer() {
 }
 #include <math.h>
 signed int filter_by_object(data::keyframe* candidate_kfrm, data::frame& qry_frm) {
-    spdlog::debug("filter_by_object");
     signed int ret = 0;
     for (unsigned int idx_qry = 0; idx_qry < qry_frm.num_lbpos_; ++idx_qry) {
         for(unsigned int idx_krm = 0; idx_krm < candidate_kfrm->num_lbpos_; ++idx_krm) {
             if (qry_frm.labels_.at(idx_qry) == candidate_kfrm->labels_.at(idx_krm)) {
-                auto x1 = candidate_kfrm->labels_pos(0);
-                auto y1 = candidate_kfrm->labels_pos(1);
-                auto z1 = candidate_kfrm->labels_pos(2);
-                auto x2 = qry_frm.labels_pos(0);
-                auto y2 = qry_frm.labels_pos(1);
-                auto z2 = qry_frm.labels_pos(2);
+                auto x1 = candidate_kfrm->labels_pos.at(idx_krm)(0);
+                auto y1 = candidate_kfrm->labels_pos.at(idx_krm)(1);
+                auto z1 = candidate_kfrm->labels_pos.at(idx_krm)(2);
+                auto x2 = qry_frm.labels_pos.at(idx_qry)(0);
+                auto y2 = qry_frm.labels_pos.at(idx_qry)(1);
+                auto z2 = qry_frm.labels_pos.at(idx_qry)(2);
                 long double distance = std::sqrt(std::pow(x1 - x2, 2.0) + std::pow(y1 - y2, 2.0) + std::pow(z1 - z2, 2.0));
                 spdlog::debug("filter_by_object: Found same object {},{} distance is {}", qry_frm.labels_.at(idx_qry), candidate_kfrm->labels_.at(idx_krm), distance);
                 if (distance < 0.1) {
@@ -48,8 +47,10 @@ signed int filter_by_object(data::keyframe* candidate_kfrm, data::frame& qry_frm
     return ret;
 }
 
+#include <chrono>
 
 bool relocalizer::relocalize(data::frame& curr_frm) {
+    const auto tp_1 = std::chrono::steady_clock::now();
     curr_frm.compute_bow();
 
     // acquire relocalization candidates
@@ -58,6 +59,7 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
         return false;
     }
     const auto num_candidates = reloc_candidates.size();
+    spdlog::debug("relocalize: num_candidates {}", num_candidates);
 
     std::vector<std::vector<data::landmark*>> matched_landmarks(num_candidates);
 
@@ -68,15 +70,16 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
             continue;
         }
 
-        if (curr_frm.labels_.size() > 0) {
-            spdlog::debug("relocalize: Current frame have object!");
-            // TODO: Design how to filter. Score, threshold (If frame have no object, what should we do)
-            const auto matches_object = filter_by_object(keyfrm, curr_frm);
-            if ret < 1 {
-                spdlog::debug("relocalize: Object can't be matched");
-                continue;
-            }
-        }
+        // if (curr_frm.labels_.size() > 0) {
+        //     // TODO: Design how to filter. Score, threshold (If frame have no object, what should we do)
+        //     const auto matches_object = filter_by_object(keyfrm, curr_frm);
+        //     spdlog::debug("relocalize: matches_object {}", matches_object);
+        //     if (matches_object < 1) {
+        //         spdlog::debug("relocalize: Object can't be matched");
+        //         continue;
+        //     }
+        //     spdlog::debug("relocalize: This frame can be used");
+        // }
 
         const auto num_matches = bow_matcher_.match_frame_and_keyframe(keyfrm, curr_frm, matched_landmarks.at(i));
         // discard the candidate if the number of 2D-3D matches is less than the threshold
@@ -171,6 +174,9 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
 
         // relocalize成功
         spdlog::info("relocalization succeeded");
+        const auto tp_2 = std::chrono::steady_clock::now();
+        const auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();
+        spdlog::info("relocalization time {}", track_time);
         // TODO: current frameのreference keyframeをセットする
 
         // reject outliers

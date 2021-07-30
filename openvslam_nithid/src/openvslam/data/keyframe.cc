@@ -48,10 +48,10 @@ keyframe::keyframe(const frame& frm, map_database* map_db, bow_database* bow_db)
 
 keyframe::keyframe(const unsigned int id, const unsigned int src_frm_id, const double timestamp,
                    const Mat44_t& cam_pose_cw, camera::base* camera, const float depth_thr,
-                   const unsigned int num_keypts, const unsigned int num_lblpos, const std::vector<cv::KeyPoint>& keypts,
+                   const unsigned int num_keypts, const unsigned int num_lbpos_, const std::vector<cv::KeyPoint>& keypts,
                    const std::vector<cv::KeyPoint>& undist_keypts, const eigen_alloc_vector<Vec3_t>& bearings,
                    const std::vector<float>& stereo_x_right, const std::vector<float>& depths, const cv::Mat& descriptors,
-                   const std::vector<std::string>& labels, eigen_alloc_vector<Vec3_t>& labels_pos,
+                   const std::vector<std::string>& labels, const std::vector<Vec3_t>& labels_pos,
                    const unsigned int num_scale_levels, const float scale_factor,
                    bow_vocabulary* bow_vocab, bow_database* bow_db, map_database* map_db)
     : // meta information
@@ -136,7 +136,7 @@ nlohmann::json keyframe::to_json() const {
             {"depths", depths_},
             {"descs", convert_descriptors_to_json(descriptors_)},
             {"labels", labels_},
-            {"labels_pos", labels_pos},
+            {"labels_pos", convert_labels_pos_to_json(labels_pos)},
             {"lm_ids", landmark_ids},
             // orb scale information
             {"n_scale_levels", num_scale_levels_},

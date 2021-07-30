@@ -15,6 +15,24 @@ Mat33_t convert_json_to_rotation(const nlohmann::json& json_rot_cw) {
     return quat_cw.toRotationMatrix();
 }
 
+nlohmann::json convert_labels_pos_to_json(const std::vector<Vec3_t>& labels_pos) {
+    std::vector<nlohmann::json> json_labels_pos(labels_pos.size());
+    for (unsigned int idx = 0; idx < labels_pos.size(); ++idx) {
+        const auto& label_pos = labels_pos.at(idx);
+        json_labels_pos.at(idx) = {label_pos(0), label_pos(1), label_pos(2)};
+    }
+    return std::move(json_labels_pos);
+}
+
+std::vector<Vec3_t> convert_json_to_labels_pos(const nlohmann::json& json_labels_pos) {
+    std::vector<Vec3_t> labels_pos(json_labels_pos.size());
+    for (unsigned int idx = 0; idx < json_labels_pos.size(); ++idx) {
+        const auto& json_label_pos = json_labels_pos.at(idx);
+        labels_pos.at(idx) = Vec3_t(json_label_pos.get<std::vector<double>>().data());
+    }
+    return labels_pos;
+}
+
 nlohmann::json convert_translation_to_json(const Vec3_t& trans_cw) {
     return {trans_cw(0), trans_cw(1), trans_cw(2)};
 }

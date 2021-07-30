@@ -247,9 +247,10 @@ void map_database::register_keyframe(camera_database* cam_db, bow_vocabulary* bo
     assert(depths.size() == num_keypts);
     // labels
     const auto labels = json_keyfrm.at("labels").get<std::vector<std::string>>();
-    auto labels_pos = eigen_alloc_vector<Vec3_t>(num_lbpos);
     assert(labels_pos.size() == num_lbpos);
-    const auto labels_pos = json_keyfrm.at("labels_pos").get<std::map<std::string, std::vector<Vec3_t>>>();
+    const auto json_labels_pos = json_keyfrm.at("labels_pos");
+    const auto labels_pos = convert_json_to_labels_pos(json_labels_pos);
+    assert(labels_pos.size() == num_lbpos);
     // assert(labels.size() == num_keypts);
     // descriptors
     const auto json_descriptors = json_keyfrm.at("descs");

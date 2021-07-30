@@ -222,7 +222,7 @@ public:
     //! labels
     unsigned int num_lbpos_ = 0;
     std::vector<std::string> labels_;
-    eigen_alloc_vector<Vec3_t> labels_pos;
+    std::vector<Vec3_t> labels_pos;
 
     //! BoW features (DBoW2 or FBoW)
 #ifdef USE_DBOW2

@@ -85,9 +85,13 @@ data::keyframe* keyframe_inserter::insert_new_keyframe(data::frame& curr_frm) {
     }
 
     curr_frm.update_pose_params();
-    auto keyfrm = new data::keyframe(curr_frm, map_db_, bow_db_);
+    // Calculate label pose after pose is updated
+    // curr_frm.create_label_pos();
 
+    auto keyfrm = new data::keyframe(curr_frm, map_db_, bow_db_);
+    
     frm_id_of_last_keyfrm_ = curr_frm.id_;
+
 
     // monocularだったらkeyframeをmapping moduleにqueueして終わり
     if (setup_type_ == camera::setup_type_t::Monocular) {
