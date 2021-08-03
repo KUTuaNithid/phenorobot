@@ -11,7 +11,7 @@
 #include <thread>
 
 #include <spdlog/spdlog.h>
-
+#include <cmath>
 namespace openvslam {
 namespace data {
 
@@ -274,8 +274,8 @@ void frame::compute_stereo_from_depth(const cv::Mat& right_img_depth) {
         const float y = keypt.pt.y;
 
         const float depth = right_img_depth.at<float>(y, x);
-
-        if (depth <= 0) {
+        
+        if (depth <= 0 || !std::isnormal(depth)) {
             continue;
         }
 

@@ -119,7 +119,8 @@ Mat44_t tracking_module::track_stereo_image(const cv::Mat& left_img_rect, const 
 
 Mat44_t tracking_module::track_RGBD_image(const cv::Mat& img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask) {
     const auto start = std::chrono::system_clock::now();
-
+    spdlog::info("depthmap.at<float>(100, 100) {}", depthmap.at<float>(100, 100));
+    
     // color and depth scale conversion
     img_gray_ = img;
     cv::Mat img_depth = depthmap;
