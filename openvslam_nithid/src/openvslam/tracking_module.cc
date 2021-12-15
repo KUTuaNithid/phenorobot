@@ -117,7 +117,7 @@ Mat44_t tracking_module::track_stereo_image(const cv::Mat& left_img_rect, const 
     return curr_frm_.cam_pose_cw_;
 }
 
-Mat44_t tracking_module::track_RGBD_image(const cv::Mat& img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask) {
+Mat44_t tracking_module::track_RGBD_image(const cv::Mat& img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask, const data::objectdetection& objects) {
     const auto start = std::chrono::system_clock::now();
 
     // color and depth scale conversion
@@ -127,7 +127,7 @@ Mat44_t tracking_module::track_RGBD_image(const cv::Mat& img, const cv::Mat& dep
     util::convert_to_true_depth(img_depth, cfg_->depthmap_factor_);
 
     // create current frame object
-    curr_frm_ = data::frame(img_gray_, img_depth, timestamp, extractor_left_, bow_vocab_, camera_, cfg_->true_depth_thr_, mask);
+    curr_frm_ = data::frame(img_gray_, img_depth, timestamp, extractor_left_, bow_vocab_, camera_, cfg_->true_depth_thr_, mask, objects);
 
     track();
 

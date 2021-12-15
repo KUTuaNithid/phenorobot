@@ -82,22 +82,30 @@ rgbd::rgbd(const std::shared_ptr<openvslam::config>& cfg, const std::string& voc
     : system(cfg, vocab_file_path, mask_img_path),
       color_sf_(it_, "/camera/image_raw", 1),
       depth_sf_(it_, "/camera/image_depth", 1),
-      sync_(SyncPolicy(10), color_sf_, depth_sf_) {
+      bdbox_sf_(nh_, "/camera/boundingbox", 1),
+      sync_(SyncPolicy(10), color_sf_, depth_sf_, bdbox_sf_) {
     sync_.registerCallback(&rgbd::callback, this);
 }
 
-void rgbd::callback(const sensor_msgs::ImageConstPtr& color, const sensor_msgs::ImageConstPtr& depth) {
+void rgbd::callback(const sensor_msgs::ImageConstPtr& color, const sensor_msgs::ImageConstPtr& depth, const darknet_ros_msgs::centerBdboxes::ConstPtr &bdbox) {
     auto colorcv = cv_bridge::toCvShare(color)->image;
     auto depthcv = cv_bridge::toCvShare(depth)->image;
     if (colorcv.empty() || depthcv.empty()) {
         return;
     }
+    openvslam::data::objectdetection objects;
 
+    for (unsigned int i = 0; i < bdbox->centerBdboxes.size(); i++) {
+        objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class, bdbox->centerBdboxes[i].depth);
+        // objects.add_object(bdbox->centerBdboxes[i].probability, bdbox->centerBdboxes[i].x_cen, bdbox->centerBdboxes[i].y_cen, bdbox->centerBdboxes[i].width, bdbox->centerBdboxes[i].height, bdbox->centerBdboxes[i].id, bdbox->centerBdboxes[i].Class);
+        // if (bdbox->centerBdboxes[i].depth != -1)
+        //     ROS_INFO("bdbox->centerBdboxes[i].Class %s bdbox->centerBdboxes[i].depth %f", bdbox->centerBdboxes[i].Class.c_str(), bdbox->centerBdboxes[i].depth);
+    }
     const auto tp_1 = std::chrono::steady_clock::now();
     const auto timestamp = std::chrono::duration_cast<std::chrono::duration<double>>(tp_1 - tp_0_).count();
 
     // input the current frame and estimate the camera pose
-    SLAM_.feed_RGBD_frame(colorcv, depthcv, timestamp, mask_);
+    SLAM_.feed_RGBD_frame(colorcv, depthcv, timestamp, mask_, objects);
 
     const auto tp_2 = std::chrono::steady_clock::now();
 

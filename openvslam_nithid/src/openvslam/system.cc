@@ -262,12 +262,12 @@ Mat44_t system::feed_stereo_frame(const cv::Mat& left_img, const cv::Mat& right_
     return cam_pose_cw;
 }
 
-Mat44_t system::feed_RGBD_frame(const cv::Mat& rgb_img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask) {
+Mat44_t system::feed_RGBD_frame(const cv::Mat& rgb_img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask, const data::objectdetection& objects) {
     assert(camera_->setup_type_ == camera::setup_type_t::RGBD);
 
     check_reset_request();
 
-    const Mat44_t cam_pose_cw = tracker_->track_RGBD_image(rgb_img, depthmap, timestamp, mask);
+    const Mat44_t cam_pose_cw = tracker_->track_RGBD_image(rgb_img, depthmap, timestamp, mask, objects);
 
     frame_publisher_->update(tracker_);
     if (tracker_->tracking_state_ == tracker_state_t::Tracking) {

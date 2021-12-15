@@ -54,18 +54,23 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
     curr_frm.compute_bow();
 
     // acquire relocalization candidates
+    auto t_acc1 = std::chrono::steady_clock::now();
     const auto reloc_candidates = bow_db_->acquire_relocalization_candidates(&curr_frm);
     if (reloc_candidates.empty()) {
         return false;
     }
+    auto t_acc2 = std::chrono::steady_clock::now();
+    auto use_time = std::chrono::duration_cast<std::chrono::duration<double>>(t_acc2 - t_acc1).count();
+    spdlog::info("acquire_relocalization_candidates  time {} ms", use_time*1000);
+    
     const auto num_candidates = reloc_candidates.size();
-    spdlog::debug("relocalize: num_candidates {}", num_candidates);
 
     std::vector<std::vector<data::landmark*>> matched_landmarks(num_candidates);
 
     // 各候補について，BoW tree matcherで対応点を求める
     for (unsigned int i = 0; i < num_candidates; ++i) {
         auto keyfrm = reloc_candidates.at(i);
+        spdlog::info("relocalize: keyfrms id {}", keyfrm->id_);
         if (keyfrm->will_be_erased()) {
             continue;
         }
@@ -81,7 +86,8 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
         //     spdlog::debug("relocalize: This frame can be used");
         // }
 
-        const auto num_matches = bow_matcher_.match_frame_and_keyframe(keyfrm, curr_frm, matched_landmarks.at(i));
+        // t_acc1 = std::chrono::steady_clock::now();
+        auto num_matches = bow_matcher_.match_frame_and_keyframe(keyfrm, curr_frm, matched_landmarks.at(i));
         // discard the candidate if the number of 2D-3D matches is less than the threshold
         if (num_matches < min_num_bow_matches_) {
             continue;
@@ -91,7 +97,11 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
         const auto valid_indices = extract_valid_indices(matched_landmarks.at(i));
         auto pnp_solver = setup_pnp_solver(valid_indices, curr_frm.bearings_, curr_frm.keypts_,
                                            matched_landmarks.at(i), curr_frm.scale_factors_);
+        // t_acc2 = std::chrono::steady_clock::now();
+        // use_time = std::chrono::duration_cast<std::chrono::duration<double>>(t_acc2 - t_acc1).count();
+        // spdlog::info("match_frame_and_keyframe  time {} ms", use_time*1000);
 
+        // t_acc1 = std::chrono::steady_clock::now();
         // 1. Estimate the camera pose with EPnP(+RANSAC)
 
         pnp_solver->find_via_ransac(30);
@@ -102,6 +112,11 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
         curr_frm.cam_pose_cw_ = pnp_solver->get_best_cam_pose();
         curr_frm.update_pose_params();
 
+        // t_acc2 = std::chrono::steady_clock::now();
+        // use_time = std::chrono::duration_cast<std::chrono::duration<double>>(t_acc2 - t_acc1).count();
+        // spdlog::info("step 1  time {} ms", use_time*1000);
+        
+        // t_acc1 = std::chrono::steady_clock::now();
         // 2. Apply pose optimizer
 
         // get the inlier indices after EPnP+RANSAC
@@ -132,6 +147,11 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
             curr_frm.landmarks_.at(idx) = nullptr;
         }
 
+        // t_acc2 = std::chrono::steady_clock::now();
+        // use_time = std::chrono::duration_cast<std::chrono::duration<double>>(t_acc2 - t_acc1).count();
+        // spdlog::info("step 2  time {} ms", use_time*1000);
+        
+        // t_acc1 = std::chrono::steady_clock::now();
         // 3. Apply projection match to increase 2D-3D matches
 
         // projection match based on the pre-optimized camera pose
@@ -141,6 +161,11 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
             continue;
         }
 
+        // t_acc2 = std::chrono::steady_clock::now();
+        // use_time = std::chrono::duration_cast<std::chrono::duration<double>>(t_acc2 - t_acc1).count();
+        // spdlog::info("step 3  time {} ms", use_time*1000);
+        
+        // t_acc1 = std::chrono::steady_clock::now();
         // 4. Re-apply the pose optimizer
 
         num_valid_obs = pose_optimizer_.optimize(curr_frm);
@@ -171,12 +196,14 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
                 continue;
             }
         }
+        // t_acc2 = std::chrono::steady_clock::now();
+        // use_time = std::chrono::duration_cast<std::chrono::duration<double>>(t_acc2 - t_acc1).count();
+        // spdlog::info("step 4  time {} ms", use_time*1000);
 
         // relocalize成功
-        spdlog::info("relocalization succeeded");
         const auto tp_2 = std::chrono::steady_clock::now();
         const auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();
-        spdlog::info("relocalization time {}", track_time);
+        spdlog::info("relocalization succeeded {} ms", track_time*1000);
         // TODO: current frameのreference keyframeをセットする
 
         // reject outliers

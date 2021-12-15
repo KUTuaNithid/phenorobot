@@ -106,11 +106,11 @@ public:
     frame(const cv::Mat& img_gray, const cv::Mat& img_depth, const double timestamp,
           feature::orb_extractor* extractor, bow_vocabulary* bow_vocab,
           camera::base* camera, const float depth_thr,
-          const cv::Mat& mask = cv::Mat{});
+          const cv::Mat& mask = cv::Mat{}, const data::objectdetection& objects = data::objectdetection{});
 
     void label_keypoints();
 
-    void create_label_pos();
+    void create_label_pos(int select_flg = 0);
 
     /**
      * Set camera pose and refresh rotation and translation

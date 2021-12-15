@@ -241,6 +241,11 @@ unsigned int projection::match_frame_and_keyframe(data::frame& curr_frm, data::k
         float x_right;
         const bool in_image = curr_frm.camera_->reproject_to_image(rot_cw, trans_cw, pos_w, reproj, x_right);
 
+        // Outside bounding box
+        if (!in_object(reproj, )){
+            continue;
+        }
+
         // 画像外に再投影される場合はスルー
         if (!in_image) {
             continue;

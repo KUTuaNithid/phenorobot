@@ -78,7 +78,7 @@ public:
 
     //! Track an RGBD frame
     //! (Note: RGB and Depth images must be aligned)
-    Mat44_t track_RGBD_image(const cv::Mat& img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask = cv::Mat{});
+    Mat44_t track_RGBD_image(const cv::Mat& img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask = cv::Mat{}, const data::objectdetection& objects = data::objectdetection{});
 
     //-----------------------------------------
     // management for reset process

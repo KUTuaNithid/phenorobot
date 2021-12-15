@@ -223,11 +223,15 @@ std::vector<keyframe*> bow_database::acquire_relocalization_candidates(frame* qr
     // }
     // Step 1.
     // Count up the number of nodes, words which are shared with query_keyframe, for all the keyframes in DoW database
-
+    
+    auto t_acc1 = std::chrono::steady_clock::now();
     // If there are no candidates, done
     if (!set_candidates_sharing_words(qry_frm)) {
         return std::vector<keyframe*>();
     }
+    auto t_acc2 = std::chrono::steady_clock::now();
+    auto use_time = std::chrono::duration_cast<std::chrono::duration<double>>(t_acc2 - t_acc1).count();
+    spdlog::info("set_candidates_sharing_words  time {} ms", use_time*1000);
 
     // Set min_num_common_words as 80 percentile of max_num_common_words
     // for the following selection of candidate keyframes.
@@ -272,6 +276,7 @@ std::vector<keyframe*> bow_database::acquire_relocalization_candidates(frame* qr
             final_candidates.insert(keyfrm);
         }
     }
+    spdlog::info("final size {}", final_candidates.size());
 
     return std::vector<keyframe*>(final_candidates.begin(), final_candidates.end());
 }
@@ -284,11 +289,42 @@ void bow_database::initialize() {
     total_score_keyfrm_pairs_.clear();
 }
 
+#include <math.h>
+template<typename T>
+bool bow_database::check_label(const T* const qry_shot, const keyframe* keyfrm_in_node){
+    // return true;
+    int qry_labels = qry_shot->labels_.size();
+    int key_labels = keyfrm_in_node->labels_.size();
+    if (qry_labels <= 0) {
+        spdlog::debug("check_label: qrt_shot has no object");
+        return true;
+    }
+    if (key_labels <= 0) {
+        spdlog::debug("check_label: keyframe has no object");
+        return false;
+    }
+    double thres = 0.6;
+    int matched_rule = ceil(qry_labels*thres);
+    int matched = 0;
+    for (const auto& qry:qry_shot->labels_){
+        auto it = std::find(keyfrm_in_node->labels_.begin(), keyfrm_in_node->labels_.end(), qry);
+        if (it != keyfrm_in_node->labels_.end()) {
+            matched++;
+        }
+        if (matched >= matched_rule){
+            spdlog::debug("check_label: {} is selected matched_rule {}", keyfrm_in_node->id_, matched_rule);
+            return true;
+        }
+    }
+    return false;
+
+}
+
 template<typename T>
 bool bow_database::set_candidates_sharing_words(const T* const qry_shot, const std::set<keyframe*>& keyfrms_to_reject) {
     init_candidates_.clear();
     num_common_words_.clear();
-
+    int filout = 0;
     std::lock_guard<std::mutex> lock(mtx_);
 
     // Get word (node index) of the query
@@ -309,13 +345,19 @@ bool bow_database::set_candidates_sharing_words(const T* const qry_shot, const s
                 num_common_words_[keyfrm_in_node] = 0;
                 // If far enough from the query keyframe, store it as the initial loop candidates
                 if (!static_cast<bool>(keyfrms_to_reject.count(keyfrm_in_node))) {
-                    init_candidates_.insert(keyfrm_in_node);
+                    if (check_label(qry_shot, keyfrm_in_node)) {
+                        init_candidates_.insert(keyfrm_in_node);
+                    } else {
+                        filout++;
+                    }
                 }
             }
             // Count up the number of words
             ++num_common_words_.at(keyfrm_in_node);
         }
     }
+    
+    spdlog::info("set_candidates_sharing_words: filout {} init_candidates_.size {} Object {}", filout, init_candidates_.size(), qry_shot->labels_.size());
 
     return !init_candidates_.empty();
 }

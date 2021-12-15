@@ -60,10 +60,12 @@ public:
 class rgbd : public system {
 public:
     rgbd(const std::shared_ptr<openvslam::config>& cfg, const std::string& vocab_file_path, const std::string& mask_img_path);
-    void callback(const sensor_msgs::ImageConstPtr& color, const sensor_msgs::ImageConstPtr& depth);
+    void callback(const sensor_msgs::ImageConstPtr& color, const sensor_msgs::ImageConstPtr& depth, const darknet_ros_msgs::centerBdboxes::ConstPtr &bdbox);
 
     image_transport::SubscriberFilter color_sf_, depth_sf_;
-    using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image>;
+    // message_filters::Subscriber<sensor_msgs::Image> color_sf_, depth_sf_;
+    message_filters::Subscriber<darknet_ros_msgs::centerBdboxes> bdbox_sf_;
+    using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, darknet_ros_msgs::centerBdboxes>;
     message_filters::Synchronizer<SyncPolicy> sync_;
 };
 } // namespace openvslam_ros

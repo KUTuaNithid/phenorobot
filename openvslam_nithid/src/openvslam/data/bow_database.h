@@ -70,6 +70,9 @@ protected:
      */
     void initialize();
 
+    template<typename T>
+    bool check_label(const T* const qry_shot, const keyframe* keyfrm_in_node);
+
     /**
      * Compute the number of shared words and set candidates (init_candidates_ and num_common_words_)
      * @tparam T

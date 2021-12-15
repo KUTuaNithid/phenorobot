@@ -143,7 +143,8 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
 
     // Assign label follow undist keypoint
     // labels_ = std::vector<std::string>(num_keypts_, "No label");
-    create_label_pos();
+    // Cam pose is not set 
+    create_label_pos(0);
     // num_lbpos_ = labels_.size();
     // label_keypoints();
 
@@ -158,7 +159,10 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
     // spdlog::warn("assign_keypoints_to_grid DONE");
 }
 
-void frame::create_label_pos(){
+// select_flg = 0 -> Add label
+// select_flg = 1 -> Add pose. Need to done after updating campose
+void frame::create_label_pos(int select_flg){
+
     // spdlog::debug("Start create_label_pos");
 
     for (auto object : objects_.objects_) {
@@ -171,19 +175,22 @@ void frame::create_label_pos(){
         std::string Class = std::get<6>(object);
         float depth = std::get<7>(object);
 
-        // Triangulate to get real world coordinates
-        auto camera = static_cast<camera::perspective*>(camera_);
-        const float x = x_cen;
-        const float y = y_cen;
-        const float unproj_x = (x - camera->cx_) * depth * camera->fx_inv_;
-        const float unproj_y = (y - camera->cy_) * depth * camera->fy_inv_;
-        // spdlog::debug("create_label_pos: unproj_x {} unproj_y {} depth {} x {} y {}", unproj_x, unproj_y, depth, x, y);
-        const Vec3_t pos_c{unproj_x, unproj_y, depth};
-        auto pos_w = rot_wc_ * pos_c + cam_center_ ;
-        
         // spdlog::debug("push create_label_pos: pos {} {} {} class {}", pos_w(0), pos_w(1), pos_w(2), Class);
-        labels_.push_back(Class);
-        labels_pos.push_back(rot_wc_ * pos_c + cam_center_);
+        if (select_flg == 0) {
+            labels_.push_back(Class);
+        }
+        else {
+            // Triangulate to get real world coordinates
+            auto camera = static_cast<camera::perspective*>(camera_);
+            const float x = x_cen;
+            const float y = y_cen;
+            const float unproj_x = (x - camera->cx_) * depth * camera->fx_inv_;
+            const float unproj_y = (y - camera->cy_) * depth * camera->fy_inv_;
+            // spdlog::debug("create_label_pos: unproj_x {} unproj_y {} depth {} x {} y {}", unproj_x, unproj_y, depth, x, y);
+            const Vec3_t pos_c{unproj_x, unproj_y, depth};
+            auto pos_w = rot_wc_ * pos_c + cam_center_;
+            labels_pos.push_back(rot_wc_ * pos_c + cam_center_);
+        }
     }
     num_lbpos_ = labels_.size();
 }
@@ -203,9 +210,9 @@ void frame::label_keypoints(){
 frame::frame(const cv::Mat& img_gray, const cv::Mat& img_depth, const double timestamp,
              feature::orb_extractor* extractor, bow_vocabulary* bow_vocab,
              camera::base* camera, const float depth_thr,
-             const cv::Mat& mask)
+             const cv::Mat& mask, const data::objectdetection& objects)
     : id_(next_id_++), bow_vocab_(bow_vocab), extractor_(extractor), extractor_right_(nullptr),
-      timestamp_(timestamp), camera_(camera), depth_thr_(depth_thr) {
+      timestamp_(timestamp), camera_(camera), depth_thr_(depth_thr), objects_(objects) {
     // Get ORB scale
     update_orb_info();
 
@@ -224,6 +231,7 @@ frame::frame(const cv::Mat& img_gray, const cv::Mat& img_depth, const double tim
 
     // Convert to bearing vector
     camera->convert_keypoints_to_bearings(undist_keypts_, bearings_);
+    create_label_pos(0);
 
     // Initialize association with 3D points
     landmarks_ = std::vector<landmark*>(num_keypts_, nullptr);
