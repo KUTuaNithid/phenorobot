@@ -140,14 +140,14 @@ std::vector<keyframe*> bow_database::acquire_loop_candidates(keyframe* qry_keyfr
 
     initialize();
 
-    spdlog::debug("acquire_loop_candidates: qry_keyfrm->labels_.size() {}", qry_keyfrm->labels_.size());
-    if (qry_keyfrm->labels_.size() > 0) {
-        auto candidate = accquire_candidates_byObject(qry_keyfrm);
-        if (!candidate.empty()){
-            spdlog::debug("acquire_loop_candidates: Using object candidate");
-            return candidate;
-        }
-    }
+    // spdlog::debug("acquire_loop_candidates: qry_keyfrm->labels_.size() {}", qry_keyfrm->labels_.size());
+    // if (qry_keyfrm->labels_.size() > 0) {
+    //     auto candidate = accquire_candidates_byObject(qry_keyfrm);
+    //     if (!candidate.empty()){
+    //         spdlog::debug("acquire_loop_candidates: Using object candidate");
+    //         return candidate;
+    //     }
+    // }
 
     // Step 1.
     // Count up the number of nodes, words which are shared with query_keyframe, for all the keyframes in DoW database
@@ -345,19 +345,40 @@ bool bow_database::set_candidates_sharing_words(const T* const qry_shot, const s
                 num_common_words_[keyfrm_in_node] = 0;
                 // If far enough from the query keyframe, store it as the initial loop candidates
                 if (!static_cast<bool>(keyfrms_to_reject.count(keyfrm_in_node))) {
-                    if (check_label(qry_shot, keyfrm_in_node)) {
-                        init_candidates_.insert(keyfrm_in_node);
-                    } else {
-                        filout++;
-                    }
+                    init_candidates_.insert(keyfrm_in_node);
                 }
             }
             // Count up the number of words
             ++num_common_words_.at(keyfrm_in_node);
         }
     }
-    
-    spdlog::info("set_candidates_sharing_words: filout {} init_candidates_.size {} Object {}", filout, init_candidates_.size(), qry_shot->labels_.size());
+    // spdlog::info("set_candidates_sharing_words: Before init_candidates_.size {} Object {}" , init_candidates_.size(), qry_shot->labels_.size());
+    // Query has object ?
+    if (qry_shot->labels_[0] == 1234) {
+        std::vector<std::pair<keyframe*, int>> scores;
+        int min_score = 10000;
+        for (auto candidate : init_candidates_) {
+            int score = 0;
+            for (int i = 1;qry_shot->labels_.size();i++){
+                score = score + std::abs(qry_shot->labels_[i] - candidate->labels_[i]);
+            }
+            scores.push_back(std::make_pair(candidate,score));
+            if (min_score > score){
+                min_score = score;
+            }
+        }
+        float thres = (min_score+1)*110/100;
+        init_candidates_.clear();
+        for(auto score:scores){
+            if(score.second <= thres){
+                // Filter out
+                init_candidates_.insert(score.first);
+            }
+        }
+
+    }
+
+    // spdlog::info("set_candidates_sharing_words: After init_candidates_.size {} Object {}" , init_candidates_.size(), qry_shot->labels_.size());
 
     return !init_candidates_.empty();
 }

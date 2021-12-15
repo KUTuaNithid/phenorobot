@@ -25,7 +25,7 @@ cv::Mat frame_publisher::draw_frame(const bool draw_text) {
     std::vector<cv::KeyPoint> init_keypts;
     std::vector<int> init_matches;
     std::vector<cv::KeyPoint> curr_keypts;
-    std::vector<std::string> curr_labels;
+    std::vector<int> curr_labels;
     double elapsed_ms;
     bool mapping_is_enabled;
     std::vector<bool> is_tracked;
@@ -112,7 +112,7 @@ unsigned int frame_publisher::draw_initial_points(cv::Mat& img, const std::vecto
 
 unsigned int frame_publisher::draw_tracked_points(cv::Mat& img, const std::vector<cv::KeyPoint>& curr_keypts,
                                                   const std::vector<bool>& is_tracked, const bool mapping_is_enabled,
-                                                  const std::vector<std::string>& curr_labels,
+                                                  const std::vector<int>& curr_labels,
                                                   const float mag) const {
     constexpr float radius = 5;
 

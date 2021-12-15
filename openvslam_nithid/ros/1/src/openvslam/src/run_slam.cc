@@ -74,9 +74,11 @@ void tracking(const std::shared_ptr<openvslam::config>& cfg, const std::string& 
         viewer.run();
         if (SLAM.terminate_is_requested()) {
             // wait until the loop BA is finished
+            std::cout << "terminate_is_requested"<<std::endl;
             while (SLAM.loop_BA_is_running()) {
                 std::this_thread::sleep_for(std::chrono::microseconds(5000));
             }
+            std::cout << "shutdown"<<std::endl;
             ros::shutdown();
         }
     });

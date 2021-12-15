@@ -163,8 +163,12 @@ frame::frame(const cv::Mat& left_img_gray, const cv::Mat& right_img_gray, const 
 // select_flg = 1 -> Add pose. Need to done after updating campose
 void frame::create_label_pos(int select_flg){
 
+    labels_ = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     // spdlog::debug("Start create_label_pos");
-
+    if(objects_.objects_.size() <= 0){
+        return;
+    }
+    labels_[0] = 1234;
     for (auto object : objects_.objects_) {
         float prob = std::get<0>(object);
         signed long int x_cen = std::get<1>(object);
@@ -177,7 +181,7 @@ void frame::create_label_pos(int select_flg){
 
         // spdlog::debug("push create_label_pos: pos {} {} {} class {}", pos_w(0), pos_w(1), pos_w(2), Class);
         if (select_flg == 0) {
-            labels_.push_back(Class);
+            labels_[id] += 1;
         }
         else {
             // Triangulate to get real world coordinates
@@ -195,17 +199,17 @@ void frame::create_label_pos(int select_flg){
     num_lbpos_ = labels_.size();
 }
 
-void frame::label_keypoints(){
-    for (unsigned int idx_left = 0; idx_left < num_keypts_; ++idx_left) {
-        // spdlog::warn("idx_left {}", idx_left);
-        // const auto& keypt_left = keypts_.at(idx_left);
-        const auto& keypt_left = undist_keypts_.at(idx_left);
-        const float y = keypt_left.pt.y;
-        const float x = keypt_left.pt.x;
-        labels_.at(idx_left) = objects_.get_label(x, y);
-        // spdlog::warn("labels_.at({}) {}", idx_left, labels_.at(idx_left));
-    }
-}
+// void frame::label_keypoints(){
+//     for (unsigned int idx_left = 0; idx_left < num_keypts_; ++idx_left) {
+//         // spdlog::warn("idx_left {}", idx_left);
+//         // const auto& keypt_left = keypts_.at(idx_left);
+//         const auto& keypt_left = undist_keypts_.at(idx_left);
+//         const float y = keypt_left.pt.y;
+//         const float x = keypt_left.pt.x;
+//         labels_.at(idx_left) = objects_.get_label(x, y);
+//         // spdlog::warn("labels_.at({}) {}", idx_left, labels_.at(idx_left));
+//     }
+// }
 
 frame::frame(const cv::Mat& img_gray, const cv::Mat& img_depth, const double timestamp,
              feature::orb_extractor* extractor, bow_vocabulary* bow_vocab,

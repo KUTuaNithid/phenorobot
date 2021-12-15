@@ -181,12 +181,14 @@ void tracking_module::track() {
 
         // update the reference keyframe, local keyframes, and local landmarks
         update_local_map();
-
+        // spdlog::info("update_local_map");
         // pass all of the keyframes to the mapping module
         const auto keyfrms = map_db_->get_all_keyframes();
+        // spdlog::info("get_all_keyframes");
         for (const auto keyfrm : keyfrms) {
             mapper_->queue_keyframe(keyfrm);
         }
+        // spdlog::info("queue_keyframe");
 
         // state transition to Tracking mode
         tracking_state_ = tracker_state_t::Tracking;

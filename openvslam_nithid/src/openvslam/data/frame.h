@@ -221,7 +221,7 @@ public:
     objectdetection objects_;
     //! labels
     unsigned int num_lbpos_ = 0;
-    std::vector<std::string> labels_;
+    std::vector<int> labels_;
     std::vector<Vec3_t> labels_pos;
 
     //! BoW features (DBoW2 or FBoW)

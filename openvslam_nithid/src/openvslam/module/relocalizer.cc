@@ -24,28 +24,28 @@ relocalizer::~relocalizer() {
     spdlog::debug("DESTRUCT: module::relocalizer");
 }
 #include <math.h>
-signed int filter_by_object(data::keyframe* candidate_kfrm, data::frame& qry_frm) {
-    signed int ret = 0;
-    for (unsigned int idx_qry = 0; idx_qry < qry_frm.num_lbpos_; ++idx_qry) {
-        for(unsigned int idx_krm = 0; idx_krm < candidate_kfrm->num_lbpos_; ++idx_krm) {
-            if (qry_frm.labels_.at(idx_qry) == candidate_kfrm->labels_.at(idx_krm)) {
-                auto x1 = candidate_kfrm->labels_pos.at(idx_krm)(0);
-                auto y1 = candidate_kfrm->labels_pos.at(idx_krm)(1);
-                auto z1 = candidate_kfrm->labels_pos.at(idx_krm)(2);
-                auto x2 = qry_frm.labels_pos.at(idx_qry)(0);
-                auto y2 = qry_frm.labels_pos.at(idx_qry)(1);
-                auto z2 = qry_frm.labels_pos.at(idx_qry)(2);
-                long double distance = std::sqrt(std::pow(x1 - x2, 2.0) + std::pow(y1 - y2, 2.0) + std::pow(z1 - z2, 2.0));
-                spdlog::debug("filter_by_object: Found same object {},{} distance is {}", qry_frm.labels_.at(idx_qry), candidate_kfrm->labels_.at(idx_krm), distance);
-                if (distance < 0.1) {
-                    spdlog::debug("filter_by_object: This is same object");
-                    ++ret;
-                }
-            }
-        }
-    }
-    return ret;
-}
+// signed int filter_by_object(data::keyframe* candidate_kfrm, data::frame& qry_frm) {
+//     signed int ret = 0;
+//     for (unsigned int idx_qry = 0; idx_qry < qry_frm.num_lbpos_; ++idx_qry) {
+//         for(unsigned int idx_krm = 0; idx_krm < candidate_kfrm->num_lbpos_; ++idx_krm) {
+//             if (qry_frm.labels_.at(idx_qry) == candidate_kfrm->labels_.at(idx_krm)) {
+//                 auto x1 = candidate_kfrm->labels_pos.at(idx_krm)(0);
+//                 auto y1 = candidate_kfrm->labels_pos.at(idx_krm)(1);
+//                 auto z1 = candidate_kfrm->labels_pos.at(idx_krm)(2);
+//                 auto x2 = qry_frm.labels_pos.at(idx_qry)(0);
+//                 auto y2 = qry_frm.labels_pos.at(idx_qry)(1);
+//                 auto z2 = qry_frm.labels_pos.at(idx_qry)(2);
+//                 long double distance = std::sqrt(std::pow(x1 - x2, 2.0) + std::pow(y1 - y2, 2.0) + std::pow(z1 - z2, 2.0));
+//                 spdlog::debug("filter_by_object: Found same object {},{} distance is {}", qry_frm.labels_.at(idx_qry), candidate_kfrm->labels_.at(idx_krm), distance);
+//                 if (distance < 0.1) {
+//                     spdlog::debug("filter_by_object: This is same object");
+//                     ++ret;
+//                 }
+//             }
+//         }
+//     }
+//     return ret;
+// }
 
 #include <chrono>
 
