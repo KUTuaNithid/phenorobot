@@ -352,14 +352,15 @@ bool bow_database::set_candidates_sharing_words(const T* const qry_shot, const s
             ++num_common_words_.at(keyfrm_in_node);
         }
     }
-    // spdlog::info("set_candidates_sharing_words: Before init_candidates_.size {} Object {}" , init_candidates_.size(), qry_shot->labels_.size());
+    spdlog::info("set_candidates_sharing_words: Before init_candidates_.size {}" , init_candidates_.size());
     // Query has object ?
-    if (qry_shot->labels_[0] == 1234) {
+    if (qry_shot->labels_[0] == 1234 && !init_candidates_.empty()) {
+    // if (false) {
         std::vector<std::pair<keyframe*, int>> scores;
         int min_score = 10000;
         for (auto candidate : init_candidates_) {
             int score = 0;
-            for (int i = 1;qry_shot->labels_.size();i++){
+            for (int i = 1;i<qry_shot->labels_.size();i++){
                 score = score + std::abs(qry_shot->labels_[i] - candidate->labels_[i]);
             }
             scores.push_back(std::make_pair(candidate,score));
@@ -378,7 +379,7 @@ bool bow_database::set_candidates_sharing_words(const T* const qry_shot, const s
 
     }
 
-    // spdlog::info("set_candidates_sharing_words: After init_candidates_.size {} Object {}" , init_candidates_.size(), qry_shot->labels_.size());
+    spdlog::info("set_candidates_sharing_words: After init_candidates_.size {}" , init_candidates_.size());
 
     return !init_candidates_.empty();
 }

@@ -203,7 +203,7 @@ bool relocalizer::relocalize(data::frame& curr_frm) {
         // relocalize成功
         const auto tp_2 = std::chrono::steady_clock::now();
         const auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();
-        spdlog::info("relocalization succeeded {} ms", track_time*1000);
+        // spdlog::info("relocalization succeeded {} ms", track_time*1000);
         // TODO: current frameのreference keyframeをセットする
 
         // reject outliers

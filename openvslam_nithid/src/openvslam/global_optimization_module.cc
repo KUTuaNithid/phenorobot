@@ -476,6 +476,7 @@ bool global_optimization_module::terminate_is_requested() const {
 }
 
 void global_optimization_module::terminate() {
+    spdlog::info("terminate");
     std::lock_guard<std::mutex> lock(mtx_terminate_);
     is_terminated_ = true;
 }
