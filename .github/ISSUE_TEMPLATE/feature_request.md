@@ -7,14 +7,28 @@ assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Task Description
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+[Provide a brief description of the task]
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## Goals/Objectives
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+[Specify the goals or objectives of the task]
+
+## Dependencies
+
+[List any dependencies or tasks that need to be completed before this task]
+
+## Subtasks
+
+- [ ] Subtask 1
+- [ ] Subtask 2
+- [ ] Subtask 3
+
+## Acceptance Criteria
+
+[Define the criteria that must be met for the task to be considered completed]
+
+## Resources
+
+[List any resources, references, or documentation that may be helpful for completing the task]
